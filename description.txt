@@ -1,0 +1,22 @@
+After... some amount of time? Hopefully it will have been worth the wait!
+
+This mod is a small content mod in that it is not its own exact creation.
+All of it revolves around the hit shooter Team Fortress 2 by Valve Corporation.
+
+CURRENTLY FEATURES:
+Pyro's Flamethrower, featuring afterburn and airblast as well as pvp compatability,
+the stock shotgun, the fire axe, and Mann Co. ammunition! All sold from the Demoltionist post-Skeletron.
+
+After Skeletron is defeated, celebrate Terraria's Fortress download milestones
+with a special surprise from the Party Girl's shop!
+
+TO BE ADDED:
+Ms. Pauling NPC, Scout and Soldier stock weapons.
+
+Stay tuned! Note this mod is *VERY* much in a work in progress state, so please
+report any and all bugs to Pyroknight#1787 through dms on the TModLoader official discord.
+
+CREDITS: RighteousRyan, Leaper, M46N0L14 + other friends, major spriters, coders and cool dudes / game balance; 
+TModLoader discord, helping with a lot of code;
+
+Thanks, and have fun.
