@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "HYl9EMUM5O35kaJyyvdrnzDfd1B2vaSOlofQXHxY3kMCIAOepIMzBi3iPZ/T2052yuJCN2XMkYntLjUQADtaKg==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Dylannnnnnn\\Documents\\My Games\\Terraria\\ModLoader\\Mod Sources\\TerrariaFortress\\TerrariaFortress.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Dylannnnnnn\\.nuget\\packages\\tmodloader.codeassist\\0.1.1\\tmodloader.codeassist.0.1.1.nupkg.sha512"
+  ],
+  "logs": []
+}
