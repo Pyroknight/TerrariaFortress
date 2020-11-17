@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using TerrariaFortress.Projectiles;
 using static TerrariaFortress.TerrariaFortress;
 
 namespace TerrariaFortress.Items.Weapons
@@ -26,10 +27,8 @@ namespace TerrariaFortress.Items.Weapons
             item.height = 50;
             item.useTime = 38;
             item.useAnimation = 38;
-            item.value = 200000;
             item.shootSpeed = 64f;
             item.shoot = ProjectileID.Bullet;
-            item.useAmmo = ModContent.ItemType<AmmoBox>();
         }
 
         public override bool Shoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
@@ -40,9 +39,20 @@ namespace TerrariaFortress.Items.Weapons
             {
                 int desiredProjectiles = 10;
                 float spreadFactor = 0.3f;
-                for (int i = 0; i < desiredProjectiles; i++)
+                switch (desiredProjectiles % 2 == 0)
                 {
-                    Projectile.NewProjectile(spawningPosition, new Vector2(speedX, speedY).RotatedBy(MathHelper.ToRadians((-desiredProjectiles / 2 * spreadFactor) + i * spreadFactor)), type, (int)(damage * 1.5f) / desiredProjectiles, knockBack, player.whoAmI);
+                    case true:
+                        for (int i = 0; i < desiredProjectiles; i++)
+                        {
+                            Projectile.NewProjectile(spawningPosition, new Vector2(speedX, speedY).RotatedBy(MathHelper.ToRadians((-desiredProjectiles / 2 * spreadFactor) + i * spreadFactor)), type, (int)(damage * 1.5f) / desiredProjectiles, knockBack, player.whoAmI);
+                        }
+                        break;
+                    case false:
+                        for (int i = 0; i < desiredProjectiles; i++)
+                        {
+                            Projectile.NewProjectile(spawningPosition, new Vector2(speedX, speedY).RotatedBy(MathHelper.ToRadians((-desiredProjectiles / 2 * spreadFactor) + i * spreadFactor)), type, (int)(damage * 1.5f) / desiredProjectiles, knockBack, player.whoAmI);
+                        }
+                        break;
                 }
             }
 
@@ -51,7 +61,7 @@ namespace TerrariaFortress.Items.Weapons
 
         public override bool CanUseItem(Player player)
         {
-            Vector2 spawningPosition = (player.MountedCenter + new Vector2(player.direction * 62, 0f).RotatedBy(player.itemRotation + player.fullRotation));
+            Vector2 spawningPosition = (player.MountedCenter + new Vector2(player.direction * 42, 0f).RotatedBy(player.itemRotation + player.fullRotation));
 
             if (!Collision.CanHitLine(player.MountedCenter, 0, 0, spawningPosition, 0, 0))
             {

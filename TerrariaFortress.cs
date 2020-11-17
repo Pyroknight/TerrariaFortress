@@ -80,6 +80,7 @@ namespace TerrariaFortress
         {
             public float recentDamage = 0;
             public float randomCritChance = 0f;
+            public bool isRocketJumping = false;
             float randomCritStorageCap = 2060;
             public override void PreUpdate()
             {
@@ -88,6 +89,15 @@ namespace TerrariaFortress
                     recentDamage -= 0.5f;
                 }
                 randomCritChance = MathHelper.Clamp((recentDamage > 0 ? recentDamage / 82.5f / 2f : 0) + 2, 2f, 12f);
+
+                if (player.velocity.Y == 0)
+                {
+                    if (isRocketJumping)
+                    {
+                        player.velocity.X *= 0.8f;
+                        isRocketJumping = false;
+                    }
+                }
             }
 
             public override void OnHitNPC(Item item, NPC target, int damage, float knockback, bool crit)
@@ -156,6 +166,39 @@ namespace TerrariaFortress
 
         public abstract class TFProjectile : ModProjectile
         {
+            public virtual bool HitboxCheckPlayer(Player player, Rectangle hitbox, Player playerToIntersect)
+            {
+                if (hitbox.Intersects(playerToIntersect.Hitbox) && playerToIntersect.whoAmI != player.whoAmI && playerToIntersect.active)
+                {
+                    if (player.team != (int)Team.None && player.team != playerToIntersect.team && player.hostile == playerToIntersect.hostile && player.hostile)
+                    {
+                        return true;
+                    }
+                    else if (player.team == (int)Team.None && player.hostile == playerToIntersect.hostile && player.hostile)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            public virtual bool HitboxCheckNPC(Player player, Rectangle hitbox, NPC npcToIntersect)
+            {
+                if (hitbox.Intersects(npcToIntersect.Hitbox) && npcToIntersect.active)
+                {
+                    if (!npcToIntersect.friendly)
+                    {
+                        if (npcToIntersect.CanBeChasedBy())
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+
             public bool willCrit = false;
             public bool critBoosted = false;
             public bool miniCritBoosted = false;
@@ -189,19 +232,23 @@ namespace TerrariaFortress
             public int TFItemQuality = 0;
             public int TFItemLevel;
             public int strangeRankType = (int)StrangeRankType.Generic;
-            public string strangeStat = "";
-            public string strangeRank = "";
+            public string strangeStat = "Kills";
+            public string strangeRank = "Strange";
             public int strangePoints = 0;
             float tooltipHeight;
             string longestTooltipLine = "";
-            int centeredText;
+
+            public Vector2 ShootSpawnPos(Player player, float horizontalOffset, float verticalOffset)
+            {
+                return player.MountedCenter + (new Vector2(player.direction * horizontalOffset, verticalOffset) + new Vector2(4f, 0f)).RotatedBy(player.itemRotation + player.fullRotation);
+            }
 
             public virtual Rectangle TFMeleeHitbox(Player player, float horizontalOffset, float verticalOffset, int width, int height)
             {
-                return new Rectangle((int)(player.MountedCenter.X + (player.direction == -1 ? -width - horizontalOffset : horizontalOffset)), (int)(player.MountedCenter.Y + verticalOffset + (player.gravDir == -1 ? (height - verticalOffset) * 2 : 0f)), width, height);
-            }
+                return new Rectangle((int)(player.MountedCenter.X + (player.direction == -1 ? -width - horizontalOffset : horizontalOffset)), (int)(player.MountedCenter.Y + verticalOffset * player.gravDir + (player.gravDir == -1 ? (-height) : 0f)), width, height);
+            }   
 
-            public virtual bool hitboxCheckPlayer(Player player, Rectangle hitbox, Player playerToIntersect)
+            public virtual bool HitboxCheckPlayer(Player player, Rectangle hitbox, Player playerToIntersect)
             {
                 if (hitbox.Intersects(playerToIntersect.Hitbox) && playerToIntersect.whoAmI != player.whoAmI && playerToIntersect.active)
                 {
@@ -218,13 +265,13 @@ namespace TerrariaFortress
                 return false;
             }
 
-            public virtual bool hitboxCheckNPC(Player player, Rectangle hitbox, NPC npcToIntersect)
+            public virtual bool HitboxCheckNPC(Player player, Rectangle hitbox, NPC npcToIntersect)
             {
                 if (hitbox.Intersects(npcToIntersect.Hitbox) && npcToIntersect.active)
                 {
-                    if (!npcToIntersect.friendly || npcToIntersect.townNPC)
+                    if (!npcToIntersect.friendly)
                     {
-                        if (npcToIntersect.type != NPCID.TargetDummy)
+                        if (npcToIntersect.CanBeChasedBy())
                         {
                             return true;
                         }
@@ -278,6 +325,7 @@ namespace TerrariaFortress
                     item.melee = true;
                     item.useTurn = true;
                     item.holdStyle = ItemHoldStyleID.HoldingOut;
+                    item.value = 200000;
 
                 }
                 if (isRanged)
@@ -287,10 +335,28 @@ namespace TerrariaFortress
                     item.ranged = true;
                     item.noMelee = true;
                     item.holdStyle = ItemHoldStyleID.HoldingOut;
+                    item.value = 300000;
                 }
                 item.magic = isScreamFortressSpell;
                 item.noUseGraphic = true;
                 item.autoReuse = true;
+            }
+
+            public override bool UseItem(Player player)
+            {
+                if (player.itemAnimation < player.itemAnimationMax * 0.777)
+                {
+                    player.bodyFrame.Y = player.bodyFrame.Height * 3;
+                }
+                else if (player.itemAnimation < player.itemAnimationMax * 0.888)
+                {
+                    player.bodyFrame.Y = player.bodyFrame.Height * 2;
+                }
+                else
+                {
+                    player.bodyFrame.Y = player.bodyFrame.Height;
+                }
+                return true;
             }
 
             public override void UpdateInventory(Player player)
@@ -778,18 +844,18 @@ namespace TerrariaFortress
                 return true;
             }
 
-            public override bool PreDrawTooltipLine(DrawableTooltipLine line, ref int yOffset)
-            {
-                DynamicSpriteFont tooltip = Main.fontMouseText;
-                if (tooltip.MeasureString(line.text).X > tooltip.MeasureString(longestTooltipLine).X)
-                {
-                    longestTooltipLine = line.text;
-                }
-                centeredText = (int)tooltip.MeasureString(longestTooltipLine).X;
+            //public override bool PreDrawTooltipLine(DrawableTooltipLine line, ref int yOffset)
+            //{
+            //    DynamicSpriteFont tooltip = Main.fontMouseText;
+            //    if (tooltip.MeasureString(line.text).X > tooltip.MeasureString(longestTooltipLine).X)
+            //    {
+            //        longestTooltipLine = line.text;
+            //    }
+            //    centeredText = (int)tooltip.MeasureString(longestTooltipLine).X;
 
-                //Main.NewText(Main.mouseX - line.X);
-                return base.PreDrawTooltipLine(line, ref yOffset);
-            }
+            //    //Main.NewText(Main.mouseX - line.X);
+            //    return base.PreDrawTooltipLine(line, ref yOffset);
+            //}
 
             public override bool CanUseItem(Player player)
             {
@@ -806,6 +872,7 @@ namespace TerrariaFortress
                 return base.CanUseItem(player);
             }
 
+            
             public override bool ConsumeAmmo(Player player)
             {
                 return false;
@@ -858,7 +925,7 @@ namespace TerrariaFortress
                                 }
 
                                 Point point = (new Vector2(hitbox.X + i, hitbox.Y + j)).ToTileCoordinates();
-                                if (WorldGen.SolidTile(point.X, point.Y))
+                                if (WorldGen.SolidOrSlopedTile(point.X, point.Y))
                                 {
                                     meleeWorldCollided = true;
                                 }
@@ -869,7 +936,7 @@ namespace TerrariaFortress
                         {
                             Player impactedPlayer = Main.player[i];
 
-                            if (hitboxCheckPlayer(player, hitbox, impactedPlayer))
+                            if (HitboxCheckPlayer(player, hitbox, impactedPlayer))
                             {
                                 meleeEntityCollided = true;
                             }
@@ -879,7 +946,11 @@ namespace TerrariaFortress
                         {
                             NPC impactedNPC = Main.npc[i];
 
-                            if (hitboxCheckNPC(player, hitbox, impactedNPC))
+                            if (HitboxCheckNPC(player, hitbox, impactedNPC))
+                            {
+                                meleeEntityCollided = true;
+                            }
+                            if (hitbox.Intersects(impactedNPC.Hitbox))
                             {
                                 meleeEntityCollided = true;
                             }
@@ -922,10 +993,9 @@ namespace TerrariaFortress
 
         public class HoldoutDrawLayer : ModPlayer
         {
-            static bool pilotSoundCheck = false;    
+            static bool pilotSoundCheck = false;
             static bool meleeRotationBuildup = true;
             static float meleeRotationFactor = 0f;
-            static float meleeRotation = 0f;
 
             public static readonly PlayerLayer HeldItem = new PlayerLayer("TerrariaFortress", "HeldItem", PlayerLayer.HeldItem, delegate (PlayerDrawInfo drawInfo)
             {
@@ -945,84 +1015,106 @@ namespace TerrariaFortress
                 void DrawHoldoutSimple(Texture2D texture, float horizontalOffset, float verticalOffset, float rotation, Color suppliedColor, bool meleeOrigin)
                 {
                     Rectangle rectangle = texture.Frame(1, 1, 0, 0);
-                    Vector2 drawPos = meleeOrigin ? (player.MountedCenter - Main.screenPosition + new Vector2(player.direction * (horizontalOffset + verticalOffset), player.gfxOffY + horizontalOffset + verticalOffset)).Floor() : (player.MountedCenter - Main.screenPosition + new Vector2(player.direction * horizontalOffset, player.gfxOffY + verticalOffset)).Floor();
-                    Vector2 origin = meleeOrigin ? player.direction == -1 ? rectangle.Size() * 0.5f + new Vector2(horizontalOffset + player.direction + rectangle.Width * 0.5f, verticalOffset) : rectangle.Size() * 0.5f + new Vector2(-horizontalOffset + player.direction - rectangle.Width * 0.5f, verticalOffset) : player.direction == -1 ? rectangle.Size() * 0.5f + new Vector2(horizontalOffset + player.direction + rectangle.Width * 0.5f, verticalOffset) : rectangle.Size() * 0.5f + new Vector2(-horizontalOffset + player.direction - rectangle.Width * 0.5f, verticalOffset);
+                    Vector2 drawPos = (player.MountedCenter - Main.screenPosition + new Vector2(player.direction * horizontalOffset, player.gfxOffY + verticalOffset)).Floor();
+                    Vector2 origin = player.direction == -1 ? rectangle.Size() * 0.5f + new Vector2(horizontalOffset + rectangle.Width * 0.5f, verticalOffset) : rectangle.Size() * 0.5f + new Vector2(-horizontalOffset - rectangle.Width * 0.5f, verticalOffset);
+                    Main.playerDrawData.Add(new DrawData(texture, drawPos, rectangle, suppliedColor, rotation, origin, player.HeldItem.scale, spriteEffect, 0));
+                }
+
+                void DrawHoldoutMelee(Texture2D texture, float horizontalOffset, float verticalOffset, float rotation, Color suppliedColor)
+                {
+                    Rectangle rectangle = texture.Frame(1, 1, 0, 0);
+                    Vector2 drawPos = (player.MountedCenter - Main.screenPosition + new Vector2(player.direction * (horizontalOffset + (player.gravDir == -1 ? verticalOffset : 0f)), player.gfxOffY + verticalOffset + (player.gravDir == -1 ? horizontalOffset : 0f))).Floor();
+                    Vector2 origin = player.direction == -1 ? rectangle.Size() * 0.5f + new Vector2(rectangle.Width * 0.5f + horizontalOffset, rectangle.Height * 0.5f - verticalOffset + (player.gravDir == -1 ? -rectangle.Height + verticalOffset : 0f)) : rectangle.Size() * 0.5f + new Vector2(-rectangle.Width * 0.5f - horizontalOffset, rectangle.Height * 0.5f - verticalOffset + (player.gravDir == -1 ? -rectangle.Height + verticalOffset : 0f));
                     Main.playerDrawData.Add(new DrawData(texture, drawPos, rectangle, suppliedColor, rotation, origin, player.HeldItem.scale, spriteEffect, 0));
                 }
 
                 void DrawAllHoldouts()
                 {
+                    float swingBackPoint = 135f;
                     if (player.HeldItem.modItem is TFWeapon item)
                     {
-                        if (item.isRanged)
+                        if (player.HeldItem.type == ModContent.ItemType<Flamethrower>())
                         {
-                            if (player.HeldItem.type == ModContent.ItemType<Flamethrower>())
-                            {
-                                Main.playerDrawData.Add(new DrawData(flamethrowerTexture, flamethrowerDrawPos, flamethrowerRectangle, rangedHoldoutColor, player.itemRotation, flamethrowerOrigin, player.HeldItem.scale, spriteEffect, 0));
-                                Main.playerDrawData.Add(new DrawData(flamethrowerTexture2, flamethrowerDrawPos, flamethrowerRectangle, new Color(255 - alphaOffset, 255 - alphaOffset, 255 - alphaOffset, 255 - alphaOffset), player.itemRotation, flamethrowerOrigin, player.HeldItem.scale, spriteEffect, 0));
+                            Main.playerDrawData.Add(new DrawData(flamethrowerTexture, flamethrowerDrawPos, flamethrowerRectangle, rangedHoldoutColor, player.itemRotation, flamethrowerOrigin, player.HeldItem.scale, spriteEffect, 0));
+                            Main.playerDrawData.Add(new DrawData(flamethrowerTexture2, flamethrowerDrawPos, flamethrowerRectangle, new Color(255 - alphaOffset, 255 - alphaOffset, 255 - alphaOffset, 255 - alphaOffset), player.itemRotation, flamethrowerOrigin, player.HeldItem.scale, spriteEffect, 0));
 
-                                //int R = 255, G = 255, B = 255;
-                                //float brightness = 0.15f;
-                                //Vector2 blueFlamePos = player.Center + new Vector2(player.direction * 60, player.gfxOffY + 6f).RotatedBy(player.itemRotation + player.fullRotation);
+                            //int R = 255, G = 255, B = 255;
+                            //float brightness = 0.15f;
+                            //Vector2 blueFlamePos = player.Center + new Vector2(player.direction * 60, player.gfxOffY + 6f).RotatedBy(player.itemRotation + player.fullRotation);
 
-                                //Lighting.AddLight(blueFlamePos, R / 255f * brightness, G / 255f * brightness, B / 255f * brightness);
-                                //Dust dust1 = Main.dust[Dust.NewDust(blueFlamePos, 2, 2, 211, 0f, -0.2f, 100, default, 0.5f)];
-                                //dust1.noGravity = true;
-                                //dust1.noLight = true;
+                            //Lighting.AddLight(blueFlamePos, R / 255f * brightness, G / 255f * brightness, B / 255f * brightness);
+                            //Dust dust1 = Main.dust[Dust.NewDust(blueFlamePos, 2, 2, 211, 0f, -0.2f, 100, default, 0.5f)];
+                            //dust1.noGravity = true;
+                            //dust1.noLight = true;
 
-                                //if (!pilotSoundCheck)
-                                //{
-                                //    Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerPilot"));
-                                //    pilotSoundCheck = true;
-                                //}
-                            }
-                            if (player.HeldItem.type == ModContent.ItemType<Shotgun>())
-                            {
-                                DrawHoldoutSimple(ModContent.GetTexture("TerrariaFortress/Items/Weapons/ShotgunHoldout"), -4f, 2f, player.itemRotation, rangedHoldoutColor, false);
-                            }
+                            //if (!pilotSoundCheck)
+                            //{
+                            //    Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerPilot"));
+                            //    pilotSoundCheck = true;
+                            //}
                         }
+                        if (player.HeldItem.type == ModContent.ItemType<Shotgun>())
+                        {
+                            DrawHoldoutSimple(ModContent.GetTexture("TerrariaFortress/Items/Weapons/ShotgunHoldout"), -4f, 2f, player.itemRotation, rangedHoldoutColor, false);
+                        }
+                        if (player.HeldItem.type == ModContent.ItemType<RocketLauncher>())
+                        {
+                            DrawHoldoutSimple(ModContent.GetTexture("TerrariaFortress/Items/Weapons/RocketLauncherHoldout"), -16f, 0f, player.itemRotation, rangedHoldoutColor, false);
+                        }
+
                         if (item.isSwingMelee)
                         {
+                            if (player.itemAnimation == player.HeldItem.useAnimation - 1 || player.itemAnimation == 0)
+                            {
+                                meleeRotationBuildup = true;
+                                meleeRotationFactor = 0f;
+                                player.itemRotation = player.fullRotation + (player.direction == -1 ? MathHelper.ToRadians(90f) : MathHelper.ToRadians(270f));
+
+                            }
+                            else if (player.itemAnimation != player.HeldItem.useAnimation - 1)
+                            {
+                                if (meleeRotationFactor < swingBackPoint)
+                                {
+                                    meleeRotationFactor += 5f + meleeRotationFactor * (100 / player.HeldItem.useAnimation * 0.025f) * 3;
+                                }
+                                else
+                                {
+                                    meleeRotationBuildup = false;
+                                }
+
+                                if (!meleeRotationBuildup)
+                                {
+                                    meleeRotationFactor -= (meleeRotationFactor - swingBackPoint) * 0.2f;
+                                }
+                                player.itemRotation = (player.direction == -1 ? MathHelper.ToRadians(90f - meleeRotationFactor) : MathHelper.ToRadians(270f + meleeRotationFactor));
+                            }
+
+                            if (player.HeldItem.type == ModContent.ItemType<Bat>())
+                            {
+                                DrawHoldoutMelee(Main.itemTexture[player.HeldItem.type], 0f, 2f, player.itemRotation * player.gravDir, colorBase);
+                            }
+                            if (player.HeldItem.type == ModContent.ItemType<Shovel>())
+                            {
+                                DrawHoldoutMelee(Main.itemTexture[player.HeldItem.type], -2f, 2f, player.itemRotation * player.gravDir, colorBase);
+                            }
                             if (player.HeldItem.type == ModContent.ItemType<FireAxe>())
                             {
-                                if (player.itemAnimation == player.HeldItem.useAnimation - 1 || player.itemAnimation == 0)
-                                {
-                                    meleeRotationBuildup = true;
-                                    meleeRotationFactor = 0f;
-                                    meleeRotation = player.fullRotation + (player.direction == -1 ? MathHelper.ToRadians(90f) : MathHelper.ToRadians(270f));
-
-                                }
-                                else if (player.itemAnimation != player.HeldItem.useAnimation - 1)
-                                {
-                                    if (meleeRotationFactor < 90f)
-                                    {
-                                        meleeRotationFactor += 5f + meleeRotationFactor * 0.05f;
-                                    }
-                                    else
-                                    {
-                                        meleeRotationBuildup = false;
-                                    }
-
-                                    if (!meleeRotationBuildup)
-                                    {
-                                        meleeRotationFactor -= (meleeRotationFactor - 90f) * 0.3f;
-                                    }
-                                    meleeRotation = player.fullRotation + (player.direction == -1 ? MathHelper.ToRadians(90f - meleeRotationFactor) : MathHelper.ToRadians(270f + meleeRotationFactor));
-                                }
-
-                                DrawHoldoutSimple(ModContent.GetTexture("TerrariaFortress/Items/Weapons/FireAxe"), -meleeRotationFactor * 0.1f, 24f - meleeRotationFactor * 0.3f, meleeRotation + (player.gravDir == -1 ? MathHelper.ToRadians(180f) : 0f), colorBase, true);
+                                DrawHoldoutMelee(Main.itemTexture[player.HeldItem.type], 0f, 2f, player.itemRotation * player.gravDir, colorBase);
                             }
                         }
                     }
                 }
 
-                if (drawConditions && !player.pulley)
+                if (!Main.gameMenu)
                 {
-                    DrawAllHoldouts();
-                }
-                else if (player.pulley && (player.controlUseItem || player.altFunctionUse == 2))
-                {
-                    DrawAllHoldouts();
+                    if (drawConditions && !player.pulley)
+                    {
+                        DrawAllHoldouts();
+                    }
+                    else if (player.pulley && (player.controlUseItem || player.altFunctionUse == 2))
+                    {
+                        DrawAllHoldouts();
+                    }
                 }
 
                 if (player.HeldItem.type != ModContent.ItemType<Flamethrower>())
@@ -1030,16 +1122,96 @@ namespace TerrariaFortress
                     pilotSoundCheck = false;
                 }
             });
+            public static readonly PlayerLayer Skin = new PlayerLayer("TerrariaFortress", "Skin", PlayerLayer.Skin, delegate (PlayerDrawInfo drawInfo)
+            {
+                Player player = drawInfo.drawPlayer;
+
+                if (!Main.gameMenu && player.HeldItem.modItem is TFWeapon item && item.isSwingMelee)
+                {
+                    if (player.itemAnimation < player.itemAnimationMax * 0.777)
+                    {
+                        player.bodyFrame.Y = player.bodyFrame.Height * 3;
+                    }
+                    else if (player.itemAnimation < player.itemAnimationMax * 0.888)
+                    {
+                        player.bodyFrame.Y = player.bodyFrame.Height * 2;
+                    }
+                    else if (player.itemAnimation > player.itemAnimationMax * 0.888)
+                    {
+                        player.bodyFrame.Y = player.bodyFrame.Height;
+                    }
+                    
+                    if (player.itemAnimation == 0)
+                    {
+                        player.bodyFrame.Y = player.bodyFrame.Height * 1;
+                    }
+                }
+            });
 
             public override void ModifyDrawLayers(List<PlayerLayer> layers)
             {
                 HeldItem.visible = true;
-                int index = layers.FindIndex(heldItem => heldItem == PlayerLayer.HeldItem);
+                Skin.visible = true;
+                int index = layers.FindIndex(x => x == PlayerLayer.HeldItem);
+                int index2 = layers.FindIndex(y => y == PlayerLayer.Skin);
 
                 if (index != -1)
                 {
                     layers.Insert(index, HeldItem);
                 }
+                if (index2 != -1)
+                {
+                    layers.Insert(index2, Skin);
+                }
+            }
+        }
+
+        public class TemporaryItemDeal : GlobalNPC
+        {
+            public override void SetupShop(int type, Chest shop, ref int nextSlot)
+            {
+                if (type == NPCID.Demolitionist)
+                {
+                    if (NPC.downedBoss3)
+                    {
+                        shop.item[nextSlot].SetDefaults(ModContent.ItemType<AmmoBox>());
+                        nextSlot++;
+                        shop.item[nextSlot].SetDefaults(ModContent.ItemType<Flamethrower>());
+                        nextSlot++;
+                        shop.item[nextSlot].SetDefaults(ModContent.ItemType<Shotgun>());
+                        nextSlot++;
+                        shop.item[nextSlot].SetDefaults(ModContent.ItemType<FireAxe>());
+                        nextSlot++;
+                        shop.item[nextSlot].SetDefaults(ModContent.ItemType<RocketLauncher>());
+                        nextSlot++;
+                        shop.item[nextSlot].SetDefaults(ModContent.ItemType<Shovel>());
+                        nextSlot++;
+                    }
+                }
+
+                if (type == NPCID.PartyGirl)
+                {
+                    if (NPC.downedBoss3)
+                    {
+                        shop.item[nextSlot].SetDefaults(ModContent.ItemType<NoiseMakerBirthday>());
+                        nextSlot++;
+                    }
+                }
+            }
+        }
+
+        public class AIStats : GlobalItem
+        {
+            public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
+            {
+                //if (item.type == ItemID.GPS)
+                //{
+                //    NPC trackedNPC = Main.npc[NPC.FindFirstNPC(NPCID.Merchant)];
+                //    if (trackedNPC.active)
+                //    {
+                //        tooltips.Add(new TooltipLine(mod, "ItemName", ("[c/FF0000:AI 0: ]" + trackedNPC.ai[0] + "[c/FF0000:,] ") + ("[c/FF0000:AI 1:] " + trackedNPC.ai[1] + "[c/FF0000:,] ") + ("[c/FF0000:AI 2:] " + trackedNPC.ai[2] + "[c/FF0000:,] ") + ("[c/FF0000:AI 3:] " + trackedNPC.ai[3])));
+                //    }
+                //}
             }
         }
     }

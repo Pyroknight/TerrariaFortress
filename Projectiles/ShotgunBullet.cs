@@ -24,14 +24,23 @@ namespace TerrariaFortress.Projectiles
 			projectile.ranged = true;
 			projectile.penetrate = -1;
 			projectile.alpha = 255;
-			projectile.timeLeft = 120;
 			projectile.extraUpdates = 3;
             projectile.friendly = true;
+			projectile.ignoreWater = true;
         }
 
 		public override void AI()
         {
 			projectile.rotation = projectile.velocity.ToRotation();
+			Vector2 velocity = projectile.velocity;
+			velocity.Normalize();
+			projectile.velocity = velocity * (64f / projectile.extraUpdates);
+		}
+
+		public override bool OnTileCollide(Vector2 oldVelocity)
+		{
+			Collision.HitTiles(projectile.position, -projectile.velocity, projectile.width, projectile.height);
+			return true;
 		}
 
         public override bool PreDraw(SpriteBatch spriteBatch, Color lightColor)

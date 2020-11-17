@@ -57,7 +57,7 @@ namespace TerrariaFortress.Projectiles
                 Dust dust1 = Main.dust[Dust.NewDust(projectile.position, projectile.width, projectile.height, DustID.Smoke, projectile.velocity.X * 0.25f, projectile.velocity.Y * 0.25f, 200, new Color(220, 220, 220), MathHelper.Clamp(dustScaleTimer * 0.2f, 0f, 5f) + 1f)];
                 dust1.noGravity = true;
                 dust1.noLight = true;
-                Dust dust2 = Main.dust[Dust.NewDust(projectile.position, projectile.width, projectile.height, DustID.Smoke, projectile.velocity.X * 0.25f, projectile.velocity.Y * 0.25f, 100, new Color(255, 255, 255), /*MathHelper.Clamp(dustScaleTimer * 0.04f, 0f, 1f)*/ + 1f)];
+                Dust dust2 = Main.dust[Dust.NewDust(projectile.position, projectile.width, projectile.height, DustID.Smoke, projectile.velocity.X * 0.25f, projectile.velocity.Y * 0.25f, 100, new Color(255, 255, 255), 1f)];
                 dust2.noGravity = true;
                 dust2.noLight = true;
             }
@@ -207,7 +207,7 @@ namespace TerrariaFortress.Projectiles
                             if (pushedNPC.type != NPCID.TargetDummy && pushedNPC.knockBackResist > 0f)
                             {
                                 Main.PlaySound(SoundLoader.customSoundType, (int)pushedNPC.Center.X, (int)pushedNPC.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerImpact" + Main.rand.Next(1, 5)));
-                                pushedNPC.velocity += new Vector2(Math.Abs(pushedNPC.DirectionTo(Main.MouseWorld).X) * Math.Sign(projectile.velocity.X), pushedNPC.DirectionTo(Main.MouseWorld).Y) * projectile.velocity.Length() * pushedNPC.knockBackResist;
+                                pushedNPC.velocity += new Vector2(Math.Abs(pushedNPC.DirectionTo(Main.MouseWorld).X) * Math.Sign(projectile.velocity.X), pushedNPC.DirectionTo(Main.MouseWorld).Y) * projectile.velocity.Length() * pushedNPC.knockBackResist * 2;
                             }
                         }
                     }

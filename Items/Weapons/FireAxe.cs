@@ -1,9 +1,6 @@
 using Terraria;
 using static TerrariaFortress.TerrariaFortress;
-using Terraria.ID;
-using Terraria.ModLoader;
 using Microsoft.Xna.Framework;
-using System.Collections.Generic;
 
 namespace TerrariaFortress.Items.Weapons
 {
@@ -26,7 +23,6 @@ namespace TerrariaFortress.Items.Weapons
             item.height = 46;
             item.useTime = 49;
             item.useAnimation = 49;
-            item.value = 200000;
         }
 
         public override void SetConstantDefaults()
@@ -38,7 +34,7 @@ namespace TerrariaFortress.Items.Weapons
 
         public override void UseItemHitbox(Player player, ref Rectangle hitbox, ref bool noHitbox)
         {
-            hitbox = TFMeleeHitbox(player, 0f, -36f, 36, 56);
+            hitbox = TFMeleeHitbox(player, 0f, -36f, 60, 56);
             base.UseItemHitbox(player, ref hitbox, ref noHitbox);
         }
     }

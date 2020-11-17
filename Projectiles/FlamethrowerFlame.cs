@@ -39,7 +39,6 @@ namespace TerrariaFortress.Projectiles
 
 			if (projectile.wet && !projectile.lavaWet)
             {
-
 				for (int i = 0; i < 4; i++)
 				{
 					Dust dust1 = Main.dust[Dust.NewDust(projectile.position, projectile.width, projectile.height, ModContent.DustType<AirblastBubble>(), projectile.velocity.X * 0.5f, projectile.velocity.Y * 0.5f, 0, default, 1f)];
