@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "zio/cWPNUoccajyV+Nmb5LRRKV6CqYPLs1eb8n6mEqZLNPkhVVfph9t8XnSRB218Xn2DoMGVTl09xt1uBdZQNw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\thepy\\Documents\\My Games\\Terraria\\ModLoader\\Mod Sources\\TerrariaFortress\\TerrariaFortress.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\thepy\\.nuget\\packages\\tmodloader.codeassist\\0.1.1\\tmodloader.codeassist.0.1.1.nupkg.sha512"
+  ],
+  "logs": []
+}
