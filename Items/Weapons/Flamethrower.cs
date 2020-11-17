@@ -37,6 +37,7 @@ namespace TerrariaFortress.Items.Weapons
             item.height = 50;
             item.useTime = 0;
             item.useAnimation = 0;
+            item.value = 400000;
             item.shootSpeed = 12f;
             item.shoot = ModContent.ProjectileType<FlamethrowerFlame>();
         }
@@ -52,17 +53,18 @@ namespace TerrariaFortress.Items.Weapons
 
         public override bool Shoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
         {
+            Vector2 spawningPosition = (player.Center + (new Vector2(player.direction * 64, 0f) + new Vector2(4f, 0f)).RotatedBy(player.itemRotation + player.fullRotation));
 
-            if (Collision.CanHitLine(player.MountedCenter, 0, 0, ShootSpawnPos(player, 60f, 0f), 0, 0))
+            if (Collision.CanHitLine(player.Center, 0, 0, spawningPosition, 0, 0))
             {
                 if (player.altFunctionUse == 2 && player.CountItem(item.useAmmo, 20) >= 20)
                 {   
-                    Dust.NewDustPerfect(ShootSpawnPos(player, 60f, 0f) + new Vector2(-15, -15), ModContent.DustType<AirblastFlash>(), new Vector2(0f, 0f), 0, default, 1f);
-                    Projectile.NewProjectile(ShootSpawnPos(player, 60f, 0f), new Vector2(speedX, speedY), type, 0, 0, player.whoAmI);
+                    Dust.NewDustPerfect(spawningPosition + new Vector2(-15, -15), ModContent.DustType<AirblastFlash>(), new Vector2(0f, 0f), 0, default, 1f);
+                    Projectile.NewProjectile(spawningPosition, new Vector2(speedX, speedY), type, 0, 0, player.whoAmI);
                 }
                 else
                 {
-                    Projectile.NewProjectile(ShootSpawnPos(player, 60f, 0f), new Vector2(speedX, speedY), type, damage, knockBack, player.whoAmI);
+                    Projectile.NewProjectile(spawningPosition, new Vector2(speedX, speedY), type, damage, knockBack, player.whoAmI);
                 }
             }
 
@@ -132,7 +134,9 @@ namespace TerrariaFortress.Items.Weapons
 
         public override bool CanUseItem(Player player)
         {
-            if (Collision.CanHitLine(player.MountedCenter, 0, 0, ShootSpawnPos(player, 60f, 0f), 0, 0))
+            Vector2 spawningPosition = (player.Center + new Vector2(player.direction * 64, 0f).RotatedBy(player.itemRotation + player.fullRotation));
+
+            if (Collision.CanHitLine(player.Center, 0, 0, spawningPosition, 0, 0))
             {
                 if (player.altFunctionUse == 2)
                 {
@@ -150,7 +154,7 @@ namespace TerrariaFortress.Items.Weapons
                 }
                 else if (player.CountItem(item.useAmmo, 1) >= 1)
                 {
-                    if (++ammoConsumptionTimer > 4 && Collision.CanHitLine(player.MountedCenter, 0, 0, ShootSpawnPos(player, 60f, 0f), 0, 0))
+                    if (++ammoConsumptionTimer > 4 && Collision.CanHitLine(player.Center, 0, 0, spawningPosition, 0, 0))
                     {
                         ammoConsumptionTimer = 0;
                         player.ConsumeItem(item.useAmmo);

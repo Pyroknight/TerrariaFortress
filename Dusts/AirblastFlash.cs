@@ -5,12 +5,12 @@ using Terraria.ModLoader;
 
 namespace TerrariaFortress.Dusts
 {
-    public class LargeFlash : ModDust
+    public class AirblastFlash : ModDust
     {
         private int flashTimer = 0;
         public override void OnSpawn(Dust dust)
         {
-            dust.frame = new Rectangle(0, 0, 90, 90);
+            dust.frame = new Rectangle(0, 0, 30, 30);
             dust.shader = GameShaders.Armor.GetSecondaryShader(1, Main.LocalPlayer);
         }
         public override bool Update(Dust dust)

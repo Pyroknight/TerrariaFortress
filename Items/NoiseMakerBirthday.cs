@@ -41,8 +41,8 @@ namespace TerrariaFortress.Items
 
         public override bool CanUseItem(Player player)
         {
-            Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/NoiseMaker/happy_birthday_tf_" + Main.rand.Next(30)), 0.4f);
-            Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/NoiseMaker/PyroThanksFor2k" + Main.rand.Next(6)));
+            Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/happy_birthday_tf_" + Main.rand.Next(30)), 0.4f);
+            Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/PyroThanksFor2k" + Main.rand.Next(6)));
             CombatText combatText = Main.combatText[CombatText.NewText(new Rectangle((int)player.MountedCenter.X, (int)player.MountedCenter.Y, 0, 0), new Color(Main.DiscoR, Main.DiscoB, Main.DiscoG), "Thank you for 2000+ downloads!", true, true)];
             combatText.rotation = 0f;
             combatText.velocity.Y *= 2f;

@@ -158,4 +158,49 @@ namespace TerrariaFortress.NPCs
             }
         }
     }
+
+    public class TemporaryFlamethrowerDeal : GlobalNPC
+    {
+        public override void SetupShop(int type, Chest shop, ref int nextSlot)
+        {
+            if (type == NPCID.Demolitionist)
+            {
+                if (NPC.downedBoss3)
+                {
+                    shop.item[nextSlot].SetDefaults(ModContent.ItemType<Flamethrower>());
+                    nextSlot++;
+                    shop.item[nextSlot].SetDefaults(ModContent.ItemType<Shotgun>());
+                    nextSlot++;
+                    shop.item[nextSlot].SetDefaults(ModContent.ItemType<FireAxe>());
+                    nextSlot++;
+                    shop.item[nextSlot].SetDefaults(ModContent.ItemType<AmmoBox>());
+                    nextSlot++;
+                }
+            }
+
+            if (type == NPCID.PartyGirl)
+            {
+                if (NPC.downedBoss3)
+                {
+                    shop.item[nextSlot].SetDefaults(ModContent.ItemType<NoiseMakerBirthday>());
+                    nextSlot++;
+                }
+            }
+        }
+    }
+
+    public class AIStats : GlobalItem
+    {
+        public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
+        {
+            //if (item.type == ItemID.GPS)
+            //{
+            //    NPC trackedNPC = Main.npc[NPC.FindFirstNPC(NPCID.Merchant)];
+            //    if (trackedNPC.active)
+            //    {
+            //        tooltips.Add(new TooltipLine(mod, "ItemName", ("[c/FF0000:AI 0: ]" + trackedNPC.ai[0] + "[c/FF0000:,] ") + ("[c/FF0000:AI 1:] " + trackedNPC.ai[1] + "[c/FF0000:,] ") + ("[c/FF0000:AI 2:] " + trackedNPC.ai[2] + "[c/FF0000:,] ") + ("[c/FF0000:AI 3:] " + trackedNPC.ai[3])));
+            //    }
+            //}
+        }
+    }
 }
