@@ -78,9 +78,14 @@ namespace TerrariaFortress
 
         public class TFModPlayer : ModPlayer
         {
+            public bool hasBackstabTarget;
             public float recentDamage = 0;
             public float randomCritChance = 0f;
             float randomCritStorageCap = 2060;
+            public override void ResetEffects()
+            {
+                // hasBackstabTarget = false;
+            }
             public override void PreUpdate()
             {
                 if (recentDamage > 0f)
