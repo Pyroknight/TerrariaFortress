@@ -24,22 +24,6 @@ namespace TerrariaFortress
 {
     public class TerrariaFortress : Mod
     {
-        [Label("Terraria Fortress Settings")]
-        public class TFConfig : ModConfig
-        {
-            public override ConfigScope Mode => ConfigScope.ClientSide;
-            [Header("Visuals")]
-            [Label("Ranged Weapon Holdout Rotation")]
-            [DefaultValue(true)]
-            [Tooltip("If enabled, ranged weapons' holdouts will rotate\nto your cursor and change your player's direction.")]
-            public bool shouldRangedHoldoutRotate;
-
-            [Label("Melee Weapon Holdout Rotation")]
-            [DefaultValue(true)]
-            [Tooltip("If enabled, melee weapons' holdouts will rotate\nto your cursor and change your player's direction.")]
-            public bool shouldMeleeHoldoutRotate;
-        }
-
         public static readonly Color[] TFColor =
         {
             new Color(178, 178, 178),
