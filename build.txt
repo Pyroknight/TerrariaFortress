@@ -1,0 +1,4 @@
+displayName = Terraria Fortress
+author = TerrariaFortress DevTeam
+version = 0.3
+homepage = https://discord.gg/rqTAJrSzDc
