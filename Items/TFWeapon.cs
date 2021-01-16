@@ -10,9 +10,8 @@ using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.Utilities;
-using TerrariaFortress.Items;
 
-namespace TerrariaFortress
+namespace TerrariaFortress.Items
 {
     public class TFWeapon : ModItem
     {
