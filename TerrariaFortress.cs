@@ -116,7 +116,7 @@ namespace TerrariaFortress
                             float toMouse = 0f;
                             if (player == Main.player[Main.myPlayer])
                             {
-                                if (ModContent.GetInstance<TFConfig>().ShouldMeleeHoldoutRotate)
+                                if (ModContent.GetInstance<TFConfig>().shouldMeleeHoldoutRotate)
                                 {
                                     player.GetModPlayer<HoldoutDrawLayer>().meleeSwingBackRotation = 180f;
                                     player.ChangeDir((Main.MouseWorld.X > player.MountedCenter.X).ToDirectionInt());
@@ -138,7 +138,7 @@ namespace TerrariaFortress
                             {
                                 if (player == Main.player[Main.myPlayer])
                                 {
-                                    if (ModContent.GetInstance<TFConfig>().ShouldRangedHoldoutRotate)
+                                    if (ModContent.GetInstance<TFConfig>().shouldRangedHoldoutRotate)
                                     {
                                         player.ChangeDir((Main.MouseWorld.X > player.MountedCenter.X).ToDirectionInt());
                                     }
@@ -182,7 +182,7 @@ namespace TerrariaFortress
                         {
                             if (player == Main.player[Main.myPlayer])
                             {
-                                if (ModContent.GetInstance<TFConfig>().ShouldRangedHoldoutRotate)
+                                if (ModContent.GetInstance<TFConfig>().shouldRangedHoldoutRotate)
                                 {
                                     player.ChangeDir((Main.MouseWorld.X > player.MountedCenter.X).ToDirectionInt());
                                     Vector2 toPlayer = Main.MouseWorld - player.MountedCenter;
@@ -347,9 +347,9 @@ namespace TerrariaFortress
                             ModContent.ItemType<Bottle>(),
                         };
 
-                        for (int i = 0; i < shopItems.Length; i++)
+                        foreach (int item in shopItems)
                         {
-                            AddPurchasable(shopItems[i], ref nextSlot);
+                            AddPurchasable(item, ref nextSlot);
                         }
                     }
                 }
@@ -358,8 +358,7 @@ namespace TerrariaFortress
                 {
                     if (NPC.downedBoss3)
                     {
-                        shop.item[nextSlot].SetDefaults(ModContent.ItemType<NoiseMakerBirthday>());
-                        nextSlot++;
+                        AddPurchasable(ModContent.ItemType<NoiseMakerBirthday>(), ref nextSlot);
                     }
                 }
             }
