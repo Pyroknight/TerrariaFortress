@@ -27,7 +27,7 @@ namespace TerrariaFortress
         public float randomCritCheck = Main.rand.NextFloat();
         public bool randomCrit = false;
 
-        public virtual bool ItemCritCheck(Player player, TerrariaFortress.TFWeapon tfWeapon)
+        public virtual bool ItemCritCheck(Player player, TFWeapon tfWeapon)
         {
             if (tfWeapon.canCrit)
             {
@@ -75,7 +75,7 @@ namespace TerrariaFortress
         {
             if (target.CanBeChasedBy())
             {
-                if (item.modItem is TerrariaFortress.TFWeapon)
+                if (item.modItem is TFWeapon)
                 {
                     crit = false;
 
@@ -113,7 +113,7 @@ namespace TerrariaFortress
 
         public override void ModifyHitPvp(Item item, Player target, ref int damage, ref bool crit)
         {
-            if (item.modItem is TerrariaFortress.TFWeapon)
+            if (item.modItem is TFWeapon)
             {
                 crit = false;
 
