@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace TerrariaFortress.Items.Weapons
 {
-    public class FireAxe : TFWeapon
+    public class FireAxe : TFItem
     {
         public override void SetStaticDefaults()
         {
@@ -27,7 +27,7 @@ namespace TerrariaFortress.Items.Weapons
 
         public override void SetConstantDefaults()
         {
-            basicUseSound = "MeleeSwing";
+            basicUseSound = TFUseSound("MeleeSwing");
             meleeEntityCollisionSound = "AxeFleshHit" + Main.rand.Next(1, 4);
             meleeWorldCollisionSound = "WorldMetalHit" + Main.rand.Next(1, 3);
         }
@@ -42,7 +42,7 @@ namespace TerrariaFortress.Items.Weapons
         {
             if (player.HeldItem.modItem == this)
             {
-                DrawSimpleMeleeHoldout(ItemTexture(player), new Vector2(0f, 4f), new Vector2(4f, -8f), MeleeRotation(player), LightColor(player), player);
+                DrawSimpleMeleeHoldout(ItemTexture(player), new Vector2(0f, 4f), new Vector2(4f, -8f), ItemRotation(player), LightColor(player), player);
             }
         }
     }

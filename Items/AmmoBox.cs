@@ -7,11 +7,11 @@ using static TerrariaFortress.TerrariaFortress;
 
 namespace TerrariaFortress.Items
 {
-    public class AmmoBox : TFWeapon
+    public class AmmoBox : TFItem
     {
         public override void SetStaticDefaults()
         {
-            DisplayName.SetDefault("Mann Co. Ammo Box");
+            DisplayName.SetDefault("Mann Co. Medium Ammo Crate");
         }
 
         public override void TFDefaults()
@@ -19,7 +19,7 @@ namespace TerrariaFortress.Items
             item.width = 28;
             item.height = 20;
             item.maxStack = 999;
-            item.value = 1;
+            item.value = Item.buyPrice(copper: 7);
             item.ammo = item.type;
         }
 
@@ -41,7 +41,8 @@ namespace TerrariaFortress.Items
         public override void TFDescription(List<TooltipLine> tooltips)
         {
             AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "Inside lie universal ammunitions for");
-            AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "all weapons shipped from Mann Co.");
+            AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "all weapons shipped from Mann Co.\n");
+            AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeUseLimit], "This is a limited use item. Uses: " + item.stack);
         }
     }
 }

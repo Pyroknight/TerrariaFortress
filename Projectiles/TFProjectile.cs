@@ -9,19 +9,21 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using TerrariaFortress.Buffs;
 using TerrariaFortress.Dusts;
+using TerrariaFortress.Items;
+using static TerrariaFortress.TerrariaFortress;
 
 namespace TerrariaFortress.Projectiles
 {
     public abstract class TFProjectile : ModProjectile
     {
-        public bool willCrit = false;
-        public bool critBoosted = false;
-        public bool miniCritBoosted = false;
-        public int damageFalloffCounter = 0;
         public bool rangedDamage = false;
         public bool explosiveDamage = false;
         public bool fireDamage = false;
         public bool sentryProjectile = false;
+        public bool critting = false;
+        public bool miniCritting = false;
+        public float critDamageMultiplier = 3f;
+        public bool randomCritting = false;
 
         /// <summary>
         /// Casts basic light.
@@ -83,8 +85,9 @@ namespace TerrariaFortress.Projectiles
             }
             drawColor = color;
             if (drawMode == DrawMode.ProjectileOnly || drawMode == DrawMode.ProjectileTrail)
+            {
                 spriteBatch.Draw(texture, drawPosition + (offsetDrawPosition ? OffsetDrawPosition(texture) : new Vector2(0f, 0f)), rectangle, drawColor, projectile.rotation, rectangle.Size() * 0.5f, projectile.scale, spriteEffects, 0f);
-
+            }
         }
 
         /// <summary>
@@ -146,6 +149,90 @@ namespace TerrariaFortress.Projectiles
         }
 
         /// <summary>
+        /// Runs the functions of a critical hit.
+        /// </summary>
+        /// <param name="damage">The damage to multiply by 3.</param>
+        /// <param name="player">The player who deals the critical hit.</param>
+        /// <param name="target">The target who receives the critical hit.</param>
+        public void CriticalHit(ref int damage, Player player, Entity target)
+        {
+            damage = (int)(damage * critDamageMultiplier);
+            Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/CriticalHitLanded" + Main.rand.Next(1, 6)));
+            Rectangle position = new Rectangle((int)target.position.X, (int)target.position.Y, target.width, target.height);
+            Vector2 CombatTextDimensions(int combatTextIndex, string text)
+            {
+                CombatText combatText = Main.combatText[combatTextIndex];
+                return Main.fontCombatText[combatText.crit ? 1 : 0].MeasureString(text);
+            }
+            int index = CombatText.NewText(position, TFColor[(int)TFColorID.CombatCrit], "CRITICAL");
+            if (index >= 0 && index < Main.combatText.Length)
+            {
+                CombatText combatText = Main.combatText[index];
+                combatText.position = target.Top + new Vector2(CombatTextDimensions(index, combatText.text).X * -0.5f, 0f); ;
+                combatText.lifeTime = 60;
+                combatText.rotation = 0f;
+                combatText.velocity = new Vector2(0f, -4f);
+            }
+            index = CombatText.NewText(position, TFColor[(int)TFColorID.CombatCrit], "HIT!!!");
+            if (index >= 0 && index < Main.combatText.Length)
+            {
+                CombatText combatText = Main.combatText[index];
+                combatText.position = target.Top + new Vector2(CombatTextDimensions(index, "HIT").X * -0.5f, 0f);
+                combatText.lifeTime = 60;
+                combatText.rotation = 0f;
+                combatText.velocity = new Vector2(0f, -4f);
+                combatText.position.Y += 16f;
+            }
+        }
+
+        /// <summary>
+        /// Runs the functions of a mini-crit hit.
+        /// </summary>
+        /// <param name="damage">The damage to multiply by 1.35.</param>
+        /// <param name="player">The player who deals the mini-crit hit.</param>
+        /// <param name="target">The target who receives the mini-crit hit.</param>
+        public void MiniCritHit(ref int damage, Player player, Entity target)
+        {
+            damage = (int)(damage * 1.35f);
+            Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/MiniCritHitLanded" + Main.rand.Next(1, 6)));
+            Rectangle position = new Rectangle((int)target.position.X, (int)target.position.Y, target.width, target.height);
+            Vector2 CombatTextDimensions(int combatTextIndex, string text)
+            {
+                CombatText combatText = Main.combatText[combatTextIndex];
+                return Main.fontCombatText[combatText.crit ? 1 : 0].MeasureString(text);
+            }
+            int index = CombatText.NewText(position, TFColor[(int)TFColorID.CombatMiniCrit], "MINI");
+            if (index >= 0 && index < Main.combatText.Length)
+            {
+                CombatText combatText = Main.combatText[index];
+                combatText.position = target.Top + new Vector2(CombatTextDimensions(index, combatText.text).X * -0.5f, 0f); ;
+                combatText.lifeTime = 60;
+                combatText.rotation = 0f;
+                combatText.velocity = new Vector2(0f, -4f);
+            }
+            index = CombatText.NewText(position, TFColor[(int)TFColorID.CombatMiniCrit], "CRIT!");
+            if (index >= 0 && index < Main.combatText.Length)
+            {
+                CombatText combatText = Main.combatText[index];
+                combatText.position = target.Top + new Vector2(CombatTextDimensions(index, "CRIT").X * -0.5f, 0f);
+                combatText.lifeTime = 60;
+                combatText.rotation = 0f;
+                combatText.velocity = new Vector2(0f, -4f);
+                combatText.position.Y += 16f;
+            }
+        }
+
+        public virtual void CritBoost()
+        {
+            critting = true;
+        }
+
+        public virtual void MiniCritBoost()
+        {
+            miniCritting = true;
+        }
+
+        /// <summary>
         /// Run the mechanics of a compression blast (mini-crit them, change their velocity, etc.)
         /// </summary>
         /// <param name="player">Player parameter.</param>
@@ -155,220 +242,265 @@ namespace TerrariaFortress.Projectiles
             {
                 int[] extinguishedDebuffs =
                 {
-                        BuffID.OnFire,
-                        ModContent.BuffType<Afterburn>()
-                    };
+                    BuffID.OnFire,
+                    ModContent.BuffType<Afterburn>()
+                };
 
                 Point point = projectile.Center.ToTileCoordinates();
                 Rectangle airblastFunctionHitbox;
+                int widthBase = 20, heightBase = 10;
+                int width = widthBase * 16, height = heightBase * 16;
+                Vector2 center = new Vector2(0f, 0f);
+                if (player == Main.player[Main.myPlayer])
                 {
-                    int widthBase = 20, heightBase = 10;
-                    int width = widthBase * 16, height = heightBase * 16;
-                    Vector2 center = new Vector2(0f, 0f);
-                    if (player == Main.player[Main.myPlayer])
-                    {
-                        center = player.MountedCenter + player.DirectionTo(Main.MouseWorld) * width * 0.4f;
-                    }
-                    Vector2 position = center - new Vector2(width * 0.5f, height * 0.5f);
-                    airblastFunctionHitbox = new Rectangle((int)position.X, (int)position.Y, width, height);
-
-                    Main.PlaySound(SoundLoader.customSoundType, (int)projectile.Center.X, (int)projectile.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerAirblast"));
-
-                    #region Extinguish
-                    for (int i = 0; i < Main.maxPlayers; i++)
-                    {
-                        Player extinguishedPlayer = Main.player[i];
-
-                        if (airblastFunctionHitbox.Intersects(extinguishedPlayer.Hitbox) && extinguishedPlayer.whoAmI != player.whoAmI && extinguishedPlayer.active)
-                        {
-                            if (player.team != (int)Team.None && player.team == extinguishedPlayer.team && player.hostile == extinguishedPlayer.hostile)
-                            {
-                                bool flameCheck = false;
-
-                                for (int j = 0; j < extinguishedDebuffs.Length; j++)
-                                {
-                                    flameCheck = true;
-                                }
-
-                                if (flameCheck)
-                                {
-                                    if (Collision.CanHitLine(player.MountedCenter, 0, 0, extinguishedPlayer.MountedCenter, 0, 0))
-                                    {
-                                        Main.PlaySound(SoundLoader.customSoundType, (int)extinguishedPlayer.MountedCenter.X, (int)extinguishedPlayer.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerExtinguish"));
-                                        for (int j = 0; j < extinguishedDebuffs.Length; j++)
-                                        {
-                                            extinguishedPlayer.ClearBuff(j);
-                                        }
-
-                                        if (!player.moonLeech)
-                                        {
-                                            player.statLife += 20;
-                                            player.HealEffect(20, true);
-                                        }
-                                    }
-                                }
-                            }
-                            else if (player.team == (int)Team.None && player.hostile == extinguishedPlayer.hostile && !player.hostile)
-                            {
-                                bool flameCheck = false;
-
-                                for (int j = 0; j < extinguishedDebuffs.Length; j++)
-                                {
-                                    flameCheck = true;
-                                }
-
-                                if (flameCheck)
-                                {
-                                    if (Collision.CanHitLine(player.MountedCenter, 0, 0, extinguishedPlayer.MountedCenter, 0, 0))
-                                    {
-                                        Main.PlaySound(SoundLoader.customSoundType, (int)extinguishedPlayer.MountedCenter.X, (int)extinguishedPlayer.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerExtinguish"));
-                                        for (int j = 0; j < extinguishedDebuffs.Length; j++)
-                                        {
-                                            extinguishedPlayer.ClearBuff(j);
-                                        }
-
-                                        if (!player.moonLeech)
-                                        {
-                                            player.statLife += 20;
-                                            player.HealEffect(20, true);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    for (int i = 0; i < Main.maxNPCs; i++)
-                    {
-                        NPC extinguishedNPC = Main.npc[i];
-
-                        if (airblastFunctionHitbox.Intersects(extinguishedNPC.Hitbox))
-                        {
-                            if (extinguishedNPC.friendly && extinguishedNPC.active)
-                            {
-                                bool flameCheck = false;
-
-                                for (int j = 0; j < extinguishedDebuffs.Length; j++)
-                                {
-                                    if (extinguishedNPC.HasBuff(j))
-                                    {
-                                        flameCheck = true;
-                                    }
-                                }
-
-                                if (flameCheck)
-                                {
-                                    if (Collision.CanHitLine(player.MountedCenter, 0, 0, extinguishedNPC.Center, 0, 0))
-                                    {
-                                        Main.PlaySound(SoundLoader.customSoundType, (int)extinguishedNPC.Center.X, (int)extinguishedNPC.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerExtinguish"));
-                                        for (int j = 0; j < extinguishedDebuffs.Length; j++)
-                                        {
-                                            if (extinguishedNPC.HasBuff(j))
-                                            {
-                                                extinguishedNPC.DelBuff(extinguishedNPC.FindBuffIndex(j));
-                                            }
-                                        }
-
-                                        if (!player.moonLeech)
-                                        {
-                                            player.statLife += 20;
-                                            player.HealEffect(20, true);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-
-                    #region Reflect
-                    bool reflectedDustCheck = false;
-                    for (int i = 0; i < Main.maxProjectiles; i++)
-                    {
-                        Projectile reflectedProjectile = Main.projectile[i];
-
-                        if (airblastFunctionHitbox.Intersects(reflectedProjectile.Hitbox))
-                        {
-                            if (reflectedProjectile.hostile && reflectedProjectile.active)
-                            {
-                                if (!TerrariaFortress.airblastReflectBlacklist.Contains(reflectedProjectile.type))
-                                {
-                                    if (Collision.CanHitLine(player.MountedCenter, 0, 0, reflectedProjectile.Center, 0, 0))
-                                    {
-                                        if (!projectile.wet && !WorldGen.SolidOrSlopedTile(point.X, point.Y))
-                                        {
-                                            reflectedDustCheck = true;
-                                        }
-                                        Main.PlaySound(SoundLoader.customSoundType, (int)projectile.Center.X, (int)projectile.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerReflect"));
-
-                                        reflectedProjectile.friendly = true;
-                                        reflectedProjectile.owner = player.whoAmI;
-                                        reflectedProjectile.velocity = reflectedProjectile.DirectionTo(Main.MouseWorld) * projectile.velocity.Length();
-
-                                        if (reflectedProjectile.modProjectile is TFProjectile TFProjectile)
-                                        {
-                                            TFProjectile.miniCritBoosted = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (reflectedDustCheck)
-                    {
-                        for (int j = 0; j < 10; j++)
-                        {
-                            Dust dust1 = Dust.NewDustDirect(projectile.position, projectile.width, projectile.height, ModContent.DustType<VelocityLines>(), projectile.velocity.X, projectile.velocity.Y, 0, default, 1.5f);
-                        }
-                    }
-                    #endregion
-
-                    #region Push
-                    for (int i = 0; i < Main.maxPlayers; i++)
-                    {
-                        Player pushedPlayer = Main.player[i];
-
-                        if (airblastFunctionHitbox.Intersects(pushedPlayer.Hitbox) && pushedPlayer.whoAmI != player.whoAmI && pushedPlayer.active)
-                        {
-                            if (Collision.CanHitLine(player.MountedCenter, 0, 0, pushedPlayer.MountedCenter, 0, 0))
-                            {
-                                if (player.team != (int)Team.None && player.team != pushedPlayer.team && player.hostile == pushedPlayer.hostile && player.hostile)
-                                {
-                                    Main.PlaySound(SoundLoader.customSoundType, (int)pushedPlayer.MountedCenter.X, (int)pushedPlayer.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerImpact" + Main.rand.Next(1, 5)));
-                                    pushedPlayer.velocity += new Vector2(Math.Abs(pushedPlayer.DirectionTo(Main.MouseWorld).X) * Math.Sign(projectile.velocity.X), pushedPlayer.DirectionTo(Main.MouseWorld).Y) * projectile.velocity.Length() * (pushedPlayer.noKnockback ? 0f : 1f);
-                                }
-                                else if (player.team == (int)Team.None && player.hostile == pushedPlayer.hostile && player.hostile)
-                                {
-                                    Main.PlaySound(SoundLoader.customSoundType, (int)pushedPlayer.MountedCenter.X, (int)pushedPlayer.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerImpact" + Main.rand.Next(1, 5)));
-                                    pushedPlayer.velocity += new Vector2(Math.Abs(pushedPlayer.DirectionTo(Main.MouseWorld).X) * Math.Sign(projectile.velocity.X), pushedPlayer.DirectionTo(Main.MouseWorld).Y) * projectile.velocity.Length() * (pushedPlayer.noKnockback ? 0f : 1f);
-                                }
-                            }
-                        }
-                    }
-
-                    for (int i = 0; i < Main.maxNPCs; i++)
-                    {
-                        NPC pushedNPC = Main.npc[i];
-
-                        if (airblastFunctionHitbox.Intersects(pushedNPC.Hitbox) && pushedNPC.active)
-                        {
-                            if (!pushedNPC.friendly || pushedNPC.townNPC)
-                            {
-                                if (pushedNPC.type != NPCID.TargetDummy && pushedNPC.knockBackResist > 0f)
-                                {
-                                    if (Collision.CanHitLine(player.MountedCenter, 0, 0, pushedNPC.Center, 0, 0))
-                                    {
-                                        Main.PlaySound(SoundLoader.customSoundType, (int)pushedNPC.Center.X, (int)pushedNPC.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerImpact" + Main.rand.Next(1, 5)));
-                                        pushedNPC.velocity += new Vector2(Math.Abs(pushedNPC.DirectionTo(Main.MouseWorld).X) * Math.Sign(projectile.velocity.X), pushedNPC.DirectionTo(Main.MouseWorld).Y) * projectile.velocity.Length() * pushedNPC.knockBackResist * 2;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    #endregion
+                    center = player.MountedCenter + player.DirectionTo(Main.MouseWorld) * width * 0.4f;
                 }
+                Vector2 position = center - new Vector2(width * 0.5f, height * 0.5f);
+                airblastFunctionHitbox = new Rectangle((int)position.X, (int)position.Y, width, height);
+
+                Main.PlaySound(SoundLoader.customSoundType, (int)projectile.Center.X, (int)projectile.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerAirblast"));
+
+                #region Extinguish
+                for (int i = 0; i < Main.maxPlayers; i++)
+                {
+                    Player extinguishedPlayer = Main.player[i];
+
+                    if (airblastFunctionHitbox.Intersects(extinguishedPlayer.Hitbox) && extinguishedPlayer.whoAmI != player.whoAmI && extinguishedPlayer.active)
+                    {
+                        if (player.team != (int)Team.None && player.team == extinguishedPlayer.team && player.hostile == extinguishedPlayer.hostile)
+                        {
+                            bool flameCheck = false;
+
+                            for (int j = 0; j < extinguishedDebuffs.Length; j++)
+                            {
+                                flameCheck = true;
+                            }
+
+                            if (flameCheck)
+                            {
+                                if (Collision.CanHitLine(player.MountedCenter, 0, 0, extinguishedPlayer.MountedCenter, 0, 0))
+                                {
+                                    Main.PlaySound(SoundLoader.customSoundType, (int)extinguishedPlayer.MountedCenter.X, (int)extinguishedPlayer.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerExtinguish"));
+                                    for (int j = 0; j < extinguishedDebuffs.Length; j++)
+                                    {
+                                        extinguishedPlayer.ClearBuff(j);
+                                    }
+
+                                    if (!player.moonLeech)
+                                    {
+                                        player.statLife += 20;
+                                        player.HealEffect(20, true);
+                                    }
+                                }
+                            }
+                        }
+                        else if (player.team == (int)Team.None && player.hostile == extinguishedPlayer.hostile && !player.hostile)
+                        {
+                            bool flameCheck = false;
+
+                            for (int j = 0; j < extinguishedDebuffs.Length; j++)
+                            {
+                                flameCheck = true;
+                            }
+
+                            if (flameCheck)
+                            {
+                                if (Collision.CanHitLine(player.MountedCenter, 0, 0, extinguishedPlayer.MountedCenter, 0, 0))
+                                {
+                                    Main.PlaySound(SoundLoader.customSoundType, (int)extinguishedPlayer.MountedCenter.X, (int)extinguishedPlayer.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerExtinguish"));
+                                    for (int j = 0; j < extinguishedDebuffs.Length; j++)
+                                    {
+                                        extinguishedPlayer.ClearBuff(j);
+                                    }
+
+                                    if (!player.moonLeech)
+                                    {
+                                        player.statLife += 20;
+                                        player.HealEffect(20, true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for (int i = 0; i < Main.maxNPCs; i++)
+                {
+                    NPC extinguishedNPC = Main.npc[i];
+
+                    if (airblastFunctionHitbox.Intersects(extinguishedNPC.Hitbox))
+                    {
+                        if (extinguishedNPC.friendly && extinguishedNPC.active)
+                        {
+                            bool flameCheck = false;
+
+                            foreach (int j in extinguishedDebuffs)
+                            {
+                                if (extinguishedNPC.HasBuff(j))
+                                {
+                                    flameCheck = true;
+                                }
+                            }
+
+                            if (flameCheck)
+                            {
+                                if (Collision.CanHitLine(player.MountedCenter, 0, 0, extinguishedNPC.Center, 0, 0))
+                                {
+                                    Main.PlaySound(SoundLoader.customSoundType, (int)extinguishedNPC.Center.X, (int)extinguishedNPC.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerExtinguish"));
+                                    foreach (int j in extinguishedDebuffs)
+                                    {
+                                        if (extinguishedNPC.HasBuff(j))
+                                        {
+                                            extinguishedNPC.DelBuff(extinguishedNPC.FindBuffIndex(j));
+                                        }
+                                    }
+
+                                    if (!player.moonLeech)
+                                    {
+                                        player.statLife += 20;
+                                        player.HealEffect(20, true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                #endregion
+
+                #region Reflect
+                bool reflectedDustCheck = false;
+                for (int i = 0; i < Main.maxProjectiles; i++)
+                {
+                    Projectile reflectedProjectile = Main.projectile[i];
+
+                    if (airblastFunctionHitbox.Intersects(reflectedProjectile.Hitbox))
+                    {
+                        if (reflectedProjectile.hostile && reflectedProjectile.active)
+                        {
+                            if (!airblastReflectBlacklist.Contains(reflectedProjectile.type))
+                            {
+                                if (Collision.CanHitLine(player.MountedCenter, 0, 0, reflectedProjectile.Center, 0, 0))
+                                {
+                                    if (!projectile.wet && !WorldGen.SolidOrSlopedTile(point.X, point.Y))
+                                    {
+                                        reflectedDustCheck = true;
+                                    }
+                                    Main.PlaySound(SoundLoader.customSoundType, (int)projectile.Center.X, (int)projectile.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerReflect"));
+
+                                    reflectedProjectile.friendly = true;
+                                    Vector2 velocity = Vector2.Normalize(Main.MouseWorld - reflectedProjectile.Center);
+                                    if (Vector2.Distance(Main.MouseWorld, player.MountedCenter) <= Vector2.Distance(reflectedProjectile.Center, player.MountedCenter))
+                                    {
+                                        velocity = Vector2.Normalize(reflectedProjectile.Center - player.MountedCenter);
+                                    }
+                                    reflectedProjectile.velocity = velocity * reflectedProjectile.velocity.Length();
+
+                                    if (reflectedProjectile.modProjectile is TFProjectile TFProjectile)
+                                    {
+                                        if (TFProjectile.SwitchOwnerOnAirblast())
+                                        {
+                                            reflectedProjectile.owner = player.whoAmI;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        reflectedProjectile.owner = player.whoAmI;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (reflectedDustCheck)
+                {
+                    for (int j = 0; j < 10; j++)
+                    {
+                        Dust dust1 = Dust.NewDustDirect(projectile.position, projectile.width, projectile.height, ModContent.DustType<VelocityLines>(), projectile.velocity.X, projectile.velocity.Y, 0, default, 1.5f);
+                    }
+                }
+                #endregion
+                
+                #region Push
+                for (int i = 0; i < Main.maxPlayers; i++)
+                {
+                    Player pushedPlayer = Main.player[i];
+
+                    if (airblastFunctionHitbox.Intersects(pushedPlayer.Hitbox) && pushedPlayer.whoAmI != player.whoAmI && pushedPlayer.active)
+                    {
+                        if (Collision.CanHitLine(player.MountedCenter, 0, 0, pushedPlayer.MountedCenter, 0, 0))
+                        {
+                            if (player.team != (int)Team.None && player.team != pushedPlayer.team && player.hostile == pushedPlayer.hostile && player.hostile)
+                            {
+                                Main.PlaySound(SoundLoader.customSoundType, (int)pushedPlayer.MountedCenter.X, (int)pushedPlayer.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerImpact" + Main.rand.Next(1, 5)));
+                                pushedPlayer.velocity += new Vector2(Math.Abs(pushedPlayer.DirectionTo(Main.MouseWorld).X) * Math.Sign(projectile.velocity.X), pushedPlayer.DirectionTo(Main.MouseWorld).Y) * projectile.velocity.Length() * (pushedPlayer.noKnockback ? 0f : 1f);
+                            }
+                            else if (player.team == (int)Team.None && player.hostile == pushedPlayer.hostile && player.hostile)
+                            {
+                                Main.PlaySound(SoundLoader.customSoundType, (int)pushedPlayer.MountedCenter.X, (int)pushedPlayer.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerImpact" + Main.rand.Next(1, 5)));
+                                pushedPlayer.velocity += new Vector2(Math.Abs(pushedPlayer.DirectionTo(Main.MouseWorld).X) * Math.Sign(projectile.velocity.X), pushedPlayer.DirectionTo(Main.MouseWorld).Y) * projectile.velocity.Length() * (pushedPlayer.noKnockback ? 0f : 1f);
+                            }
+                        }
+                    }
+                }
+
+                for (int i = 0; i < Main.maxNPCs; i++)
+                {
+                    NPC pushedNPC = Main.npc[i];
+
+                    if (airblastFunctionHitbox.Intersects(pushedNPC.Hitbox) && pushedNPC.active)
+                    {
+                        if (!pushedNPC.friendly || pushedNPC.townNPC)
+                        {
+                            if (pushedNPC.type != NPCID.TargetDummy && pushedNPC.knockBackResist > 0f)
+                            {
+                                if (Collision.CanHitLine(player.MountedCenter, 0, 0, pushedNPC.Center, 0, 0))
+                                {
+                                    Main.PlaySound(SoundLoader.customSoundType, (int)pushedNPC.Center.X, (int)pushedNPC.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerImpact" + Main.rand.Next(1, 5)));
+                                    pushedNPC.velocity += new Vector2(Math.Abs(pushedNPC.DirectionTo(Main.MouseWorld).X) * Math.Sign(projectile.velocity.X), pushedNPC.DirectionTo(Main.MouseWorld).Y) * projectile.velocity.Length() * pushedNPC.knockBackResist * 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                #endregion
             }
+        }
+
+        /// <summary>
+        /// Returns whether or not projectiles will switch their owner (i.e. stickybombs.) upon being reflected.
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool SwitchOwnerOnAirblast()
+        {
+            return true;
+        }
+
+        public virtual void TFAI()
+        {
+
+        }
+
+        /// <summary>
+        /// Allows you to change things while this projectile is critting.
+        /// </summary>
+        public virtual void CritEffects()
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                Dust dust1 = Dust.NewDustPerfect(projectile.Center, DustID.RainbowMk2, projectile.velocity * 0.25f, 0, new Color(255, 0, 0), 1f);
+                dust1.noGravity = true;
+            }
+        }
+
+        public override void AI()
+        {
+            if (critting)
+            {
+                CritEffects();
+            }
+
+            TFAI();
         }
 
         /// <summary>
@@ -438,7 +570,12 @@ namespace TerrariaFortress.Projectiles
                 player.velocity += (direction * (Math.Abs((Vector2.Distance(explosionPosition, player.MountedCenter) - explosionArea * 0.5f))) / (explosionArea * 0.5f)) * explosionPower;
                 player.GetModPlayer<TFModPlayer>().isRocketJumping = true;
                 float damage = projectile.damage * (Math.Abs((Vector2.Distance(explosionPosition, player.Center) - explosionArea * 0.5f))) / (explosionArea * 0.5f);
-                player.Hurt(PlayerDeathReason.ByCustomReason(player.name + " was blown up."), (int)damage, 0, false, true, false, -1);
+                int dealtDamage = (int)damage;
+                if (critting)
+                {
+                    CriticalHit(ref dealtDamage, player, player);
+                }
+                player.Hurt(PlayerDeathReason.ByCustomReason(player.name + " was blown up."), dealtDamage, 0, false, true, false, -1);
             }
 
             for (int i = 0; i < Main.maxPlayers; i++)
@@ -447,11 +584,17 @@ namespace TerrariaFortress.Projectiles
                 Player playerToIntersect = Main.player[i];
                 if (hitbox.Intersects(playerToIntersect.Hitbox) && playerToIntersect.whoAmI != player.whoAmI && playerToIntersect.active/* && Collision.CanHitLine(collisionCheckPosition, 0, 0, playerToIntersect.MountedCenter, 0, 0)*/)
                 {
+                    float damage = projectile.damage * (Math.Abs((Vector2.Distance(explosionPosition, playerToIntersect.Center) - explosionArea * 0.5f))) / (explosionArea * 0.5f);
+                    int dealtDamage = (int)damage;
+                    if (critting)
+                    {
+                        CriticalHit(ref dealtDamage, player, playerToIntersect);
+                    }
                     void PVPExplosion()
                     {
                         playerToIntersect.jump = 1;
-                        player.immuneTime = 0;
-                        player.immune = false;
+                        playerToIntersect.immuneTime = 0;
+                        playerToIntersect.immune = false;
                         Vector2 direction = Vector2.Normalize(playerToIntersect.MountedCenter - explosionPosition);
                         if (direction.HasNaNs())
                         {
@@ -459,8 +602,7 @@ namespace TerrariaFortress.Projectiles
                         }
                         playerToIntersect.velocity += (direction * (Math.Abs((Vector2.Distance(explosionPosition, playerToIntersect.MountedCenter) - explosionArea * 0.5f))) / (explosionArea * 0.5f)) * explosionPower * (playerToIntersect.noKnockback ? 0f : 1f);
                         playerToIntersect.GetModPlayer<TFModPlayer>().isRocketJumping = true;
-                        float damage = projectile.damage * (Math.Abs((Vector2.Distance(explosionPosition, playerToIntersect.Center) - explosionArea * 0.5f))) / (explosionArea * 0.5f);
-                        playerToIntersect.Hurt(PlayerDeathReason.ByCustomReason(playerToIntersect.name + " was blown up by " + player.name + "."), (int)damage, 0, false, false, false, -1);
+                        playerToIntersect.Hurt(PlayerDeathReason.ByCustomReason(playerToIntersect.name + " was blown up by " + player.name + "."), dealtDamage, 0, false, false, false, -1);
                     }
 
                     if (player.team != (int)Team.None && player.team != playerToIntersect.team && player.hostile == playerToIntersect.hostile && player.hostile)
@@ -480,22 +622,28 @@ namespace TerrariaFortress.Projectiles
                 NPC npcToIntersect = Main.npc[i];
                 if (hitbox.Intersects(npcToIntersect.Hitbox) && npcToIntersect.active /*&& Collision.CanHitLine(collisionCheckPosition, 0, 0, npcToIntersect.Center, 0, 0)*/)
                 {
-                    if (!npcToIntersect.friendly)
+                    float damage = projectile.damage * (Math.Abs((Vector2.Distance(explosionPosition, npcToIntersect.Center) - explosionArea * 0.5f))) / (explosionArea * 0.5f);
+                    int dealtDamage = (int)damage;
                     {
-                        if (npcToIntersect.CanBeChasedBy())
+                        bool hitCheck = npcToIntersect.CanBeChasedBy(projectile);
+                        if (hitCheck || npcToIntersect.type == NPCID.TargetDummy)
                         {
-                            Vector2 direction = Vector2.Normalize(npcToIntersect.Center - explosionPosition);
-                            if (direction.HasNaNs())
+                            if (critting)
                             {
-                                direction = Vector2.Normalize(npcToIntersect.Center - (explosionPosition + projectile.velocity));
+                                CriticalHit(ref dealtDamage, player, npcToIntersect);
                             }
-                            npcToIntersect.velocity += (direction * (Math.Abs((Vector2.Distance(explosionPosition, npcToIntersect.Center) - explosionArea * 0.5f))) / (explosionArea * 0.5f)) * explosionPower * npcToIntersect.knockBackResist;
-                        }
-                        if (npcToIntersect.CanBeChasedBy() || npcToIntersect.type == NPCID.TargetDummy)
-                        {
-                            float damage = projectile.damage * (Math.Abs((Vector2.Distance(explosionPosition, npcToIntersect.Center) - explosionArea * 0.5f))) / (explosionArea * 0.5f);
-                            npcToIntersect.StrikeNPC((int)damage, 0, 0, false, false, false);
+                            npcToIntersect.StrikeNPC(dealtDamage, 0, 0, false, false, false);
                             player.addDPS((int)damage);
+                            if (hitCheck)
+                            {
+                                Vector2 direction = Vector2.Normalize(npcToIntersect.Center - explosionPosition);
+                                if (direction.HasNaNs())
+                                {
+                                    direction = Vector2.Normalize(npcToIntersect.Center - (explosionPosition + projectile.velocity));
+                                }
+                                npcToIntersect.velocity += (direction * (Math.Abs((Vector2.Distance(explosionPosition, npcToIntersect.Center) - explosionArea * 0.5f))) / (explosionArea * 0.5f)) * explosionPower * npcToIntersect.knockBackResist;
+                                player.GetModPlayer<TFModPlayer>().AddRecentDamage(dealtDamage);
+                            }
                         }
                     }
                 }
@@ -530,13 +678,24 @@ namespace TerrariaFortress.Projectiles
 
         public override void ModifyHitNPC(NPC target, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
         {
+            Player player = Main.player[projectile.owner];
             crit = false;
+            if (critting)
+            {
+                CriticalHit(ref damage, player, target);
+                knockback *= critDamageMultiplier;
+            }
             TFModifyHitNPC(target, ref damage, ref knockback, ref crit, ref hitDirection);
         }
 
         public override void ModifyHitPvp(Player target, ref int damage, ref bool crit)
         {
+            Player player = Main.player[projectile.owner];
             crit = false;
+            if (critting || (randomCritting && player.GetModPlayer<TFModPlayer>().canBeRandomCritted))
+            {
+                CriticalHit(ref damage, player, target);
+            }
             TFModifyHitPvp(target, ref damage, ref crit);
         }
     }

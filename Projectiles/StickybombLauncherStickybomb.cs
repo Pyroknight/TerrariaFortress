@@ -42,7 +42,12 @@ namespace TerrariaFortress.Projectiles
 			base.Explode(radius, strength);
         }
 
-		public override void AI()
+        public override bool SwitchOwnerOnAirblast()
+        {
+			return false;
+        }
+
+        public override void TFAI()
 		{
 			Player player = Main.player[projectile.owner];
 
@@ -53,32 +58,62 @@ namespace TerrariaFortress.Projectiles
 
 			void PastLimitExplosion()
 			{
-				int stickybombsLimit = 8;
-				int[] placedStickybombs = new int[Main.maxPlayers];
-				for (int i = Main.maxProjectiles; i > 0; i--)
-				{
+                #region Old Code
+                //int stickybombsLimit = 8;
+                //int[] placedStickybombs = new int[Main.maxPlayers];
+                //for (int i = Main.maxProjectiles; i > 0; i--)
+                //{
+                //	Projectile stickybomb = Main.projectile[i];
+
+                //	if (!stickybomb.active)
+                //	{
+                //		continue;
+                //	}
+
+                //	if (player.active && stickybomb.active && stickybomb.modProjectile is StickybombLauncherStickybomb stickybomb2)
+                //	{
+                //		if (placedStickybombs[player.whoAmI] + 1 >= stickybombsLimit)
+                //		{
+                //			if (stickybomb.owner == player.whoAmI)
+                //			{
+                //				stickybomb2.Explode();
+                //			}
+                //		}
+                //		placedStickybombs[player.whoAmI]++;
+                //	}
+                //}
+                #endregion
+
+                int stickybombsLimit = 8;
+                int placedStickybombs = 0;
+                int oldestStickybombIndex = -1;
+                int oldestTimeLeft = 100000;
+                for (int i = 0; i < Main.maxProjectiles; i++)
+                {
 					Projectile stickybomb = Main.projectile[i];
+                    if (stickybomb.active && stickybomb.owner == player.whoAmI && stickybomb.type == projectile.type)
+                    {
+                        placedStickybombs++;
+                        if (stickybomb.timeLeft < oldestTimeLeft)
+                        {
+                            oldestStickybombIndex = i;
+                            oldestTimeLeft = stickybomb.timeLeft;
+                        }
+                    }
+                }
+                if (placedStickybombs > stickybombsLimit)
+                {
+					Projectile oldestStickybomb = Main.projectile[oldestStickybombIndex];
+                    if (oldestStickybomb.modProjectile is StickybombLauncherStickybomb stickybomb2)
+                    {
+						stickybomb2.Explode();
+                    }
+                }
+            }
 
-					if (!stickybomb.active)
-					{
-						continue;
-					}
+            PastLimitExplosion();
 
-					if (player.active && stickybomb.active && stickybomb.modProjectile is StickybombLauncherStickybomb stickybomb2)
-					{
-						if (placedStickybombs[player.whoAmI] > stickybombsLimit)
-						{
-							if (stickybomb.owner == player.whoAmI)
-							{
-								stickybomb2.Explode();
-							}
-						}
-						placedStickybombs[player.whoAmI]++;
-					}
-				}
-			}
-
-			float gravity = 0.3f;
+            float gravity = 0.3f;
 			int radius = 0;
 
 			if (projectile.velocity != new Vector2(0f, 0f))

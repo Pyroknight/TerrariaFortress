@@ -7,9 +7,8 @@ using static TerrariaFortress.TerrariaFortress;
 
 namespace TerrariaFortress.Items.Weapons
 {
-    public class GrenadeLauncher : TFWeapon
+    public class GrenadeLauncher : TFItem
     {
-
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Grenade Launcher");
@@ -29,10 +28,15 @@ namespace TerrariaFortress.Items.Weapons
             item.useAnimation = 36;
             item.shootSpeed = 12.27f;
             item.shoot = ModContent.ProjectileType<GrenadeLauncherGrenade>();
-            item.value = Item.gold * 80;
+            item.value = Item.buyPrice(gold: 80);
         }
 
-        public override bool Shoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
+        public override void SetConstantDefaults()
+        {
+            basicUseSound = TFUseSound("GrenadeLauncherShoot");
+        }
+
+        public override void TFShoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
         {
             Vector2 spawnPosition = ShootSpawnPos(player, 27f, -2f);
             if (Collision.CanHitLine(player.MountedCenter, 0, 0, spawnPosition, 0, 0))
@@ -44,7 +48,13 @@ namespace TerrariaFortress.Items.Weapons
                     {
                         grenade.explosionTimer = 138;
                     }
-                    Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/GrenadeLauncherShoot"));
+                    if (critting)
+                    {
+                        if (projectile.modProjectile is TFProjectile TFProjectile)
+                        {
+                            TFProjectile.CritBoost();
+                        }
+                    }
                     player.ConsumeItem(item.useAmmo);
                 }
             }
@@ -57,11 +67,15 @@ namespace TerrariaFortress.Items.Weapons
                 {
                     grenade.explosionTimer = 138;
                 }
-                Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/GrenadeLauncherShoot"));
+                if (critting)
+                {
+                    if (projectile.modProjectile is TFProjectile TFProjectile)
+                    {
+                        TFProjectile.CritBoost();
+                    }
+                }
                 player.ConsumeItem(item.useAmmo);
             }
-
-            return false;
         }
 
         public override void DrawWeaponHoldout(Player player)

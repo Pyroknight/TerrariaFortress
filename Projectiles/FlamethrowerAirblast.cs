@@ -35,11 +35,22 @@ namespace TerrariaFortress.Projectiles
 			projectile.extraUpdates = 3;
 		}
 
-        public override void AI()
+        public override void CritBoost()
+        {
+
+        }
+
+        public override void MiniCritBoost()
+        {
+
+        }
+
+        public override void TFAI()
         {
 			Player player = Main.player[projectile.owner];
+			projectile.rotation = projectile.velocity.ToRotation();
 
-            if (projectile.wet)
+			if (projectile.wet)
             {
 				projectile.Kill();
             }
@@ -68,11 +79,19 @@ namespace TerrariaFortress.Projectiles
 			}
 
 			dustScaleTimer++;
-
-			projectile.rotation = projectile.velocity.ToRotation();
 		}
 
-		public override bool PreDraw(SpriteBatch spriteBatch, Color lightColor)
+        public override bool? CanCutTiles()
+        {
+			return false;
+        }
+
+        public override bool CanDamage()
+        {
+			return false;
+        }
+
+        public override bool PreDraw(SpriteBatch spriteBatch, Color lightColor)
         {
             //spriteBatch.Draw(ModContent.GetTexture("TerrariaFortress/Projectiles/HitboxTest"), new Vector2(airblastFunctionHitbox.X, airblastFunctionHitbox.Y) - Main.screenPosition, airblastFunctionHitbox, Color.White, 0f, new Vector2(0f, 0f), 1f, SpriteEffects.None, 0f);
             return false;

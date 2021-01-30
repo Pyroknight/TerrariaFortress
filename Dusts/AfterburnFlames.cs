@@ -49,6 +49,6 @@ namespace TerrariaFortress.Dusts
         }
 
         public override Color? GetAlpha(Dust dust, Color lightColor)
-            => new Color(255 - dust.alpha, 255 - dust.alpha, 255 - dust.alpha, 255 - dust.alpha);
+            => new Color(255, 255, 255) * (dust.alpha * 1.5f * (1f / 255f));
     }
 }

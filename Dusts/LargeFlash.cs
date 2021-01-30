@@ -7,7 +7,7 @@ namespace TerrariaFortress.Dusts
 {
     public class LargeFlash : ModDust
     {
-        private int flashTimer = 0;
+        public int flashTimer = 0;
         public override void OnSpawn(Dust dust)
         {
             dust.frame = new Rectangle(0, 0, 90, 90);
@@ -15,7 +15,6 @@ namespace TerrariaFortress.Dusts
         }
         public override bool Update(Dust dust)
         {
-            //dust.rotation = dust.velocity.ToRotation();
             flashTimer++;
 
             if (flashTimer <= 5)

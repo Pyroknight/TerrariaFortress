@@ -7,7 +7,7 @@ using static TerrariaFortress.TerrariaFortress;
 
 namespace TerrariaFortress.Items.Weapons
 {
-    public class Pistol : TFWeapon
+    public class Pistol : TFItem
     {
 
         public override void SetStaticDefaults()
@@ -27,11 +27,16 @@ namespace TerrariaFortress.Items.Weapons
             item.height = 50;
             item.useTime = 9;
             item.useAnimation = 9;
-            item.shootSpeed = 5f;
+            item.shootSpeed = 6f;
             item.shoot = ModContent.ProjectileType<TFBullet>();
         }
 
-        public override bool Shoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
+        public override void SetConstantDefaults()
+        {
+            basicUseSound = TFUseSound("PistolShoot");
+        }
+
+        public override void TFShoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
         {
             Vector2 spawnPosition = ShootSpawnPos(player, 6f, -4f);
             if (Collision.CanHitLine(player.MountedCenter, 0, 0, spawnPosition, 0, 0))
@@ -39,7 +44,13 @@ namespace TerrariaFortress.Items.Weapons
                 if (player.CountItem(item.useAmmo, 1) >= 1)
                 {
                     Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, new Vector2(speedX, speedY), type, (int)(damage * 1.5f), knockBack, player.whoAmI);
-                    Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/PistolShoot"));
+                    if (critting)
+                    {
+                        if (projectile.modProjectile is TFProjectile TFProjectile)
+                        {
+                            TFProjectile.CritBoost();
+                        }
+                    }
                     player.ConsumeItem(item.useAmmo);
                 }
             }
@@ -48,11 +59,15 @@ namespace TerrariaFortress.Items.Weapons
                 spawnPosition = position;
 
                 Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, new Vector2(speedX, speedY), type, (int)(damage * 1.5f), knockBack, player.whoAmI);
-                Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/PistolShoot"));
+                if (critting)
+                {
+                    if (projectile.modProjectile is TFProjectile TFProjectile)
+                    {
+                        TFProjectile.CritBoost();
+                    }
+                }
                 player.ConsumeItem(item.useAmmo);
             }
-
-            return false;
         }
 
         public override void DrawWeaponHoldout(Player player)

@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace TerrariaFortress.Items.Weapons
 {
-    public class Bat : TFWeapon
+    public class Bat : TFItem
     {
         public override void SetStaticDefaults()
         {
@@ -27,7 +27,7 @@ namespace TerrariaFortress.Items.Weapons
 
         public override void SetConstantDefaults()
         {
-            basicUseSound = "MeleeSwing";
+            basicUseSound = TFUseSound("MeleeSwing");
             meleeEntityCollisionSound = "BatFleshHit";
             meleeWorldCollisionSound = "WorldMetalHit" + Main.rand.Next(1, 3);
         }
@@ -42,7 +42,7 @@ namespace TerrariaFortress.Items.Weapons
         {
             if (player.HeldItem.modItem == this)
             {
-                DrawSimpleMeleeHoldout(ItemTexture(player), new Vector2(0f, 2f), new Vector2(3f, -5f), MeleeRotation(player), LightColor(player), player);
+                DrawSimpleMeleeHoldout(ItemTexture(player), new Vector2(0f, 2f), new Vector2(3f, -5f), ItemRotation(player), LightColor(player), player);
             }
         }
     }

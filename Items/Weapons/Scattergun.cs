@@ -6,7 +6,7 @@ using static TerrariaFortress.TerrariaFortress;
 
 namespace TerrariaFortress.Items.Weapons
 {
-    public class Scattergun : TFWeapon
+    public class Scattergun : TFItem
     {
 
         public override void SetStaticDefaults()
@@ -26,11 +26,16 @@ namespace TerrariaFortress.Items.Weapons
             item.height = 50;
             item.useTime = 37;
             item.useAnimation = 37;
-            item.shootSpeed = 5f;
+            item.shootSpeed = 6f;
             item.shoot = ModContent.ProjectileType<TFBullet>();
         }
 
-        public override bool Shoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
+        public override void SetConstantDefaults()
+        {
+            basicUseSound = TFUseSound("ScattergunShoot");
+        }
+
+        public override void TFShoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
         {
             Vector2 spawnPosition = ShootSpawnPos(player, 38f, -4f) + new Vector2(player.direction * -6f, 0f); ;
             if (Collision.CanHitLine(player.MountedCenter, 0, 0, spawnPosition, 0, 0))
@@ -45,8 +50,14 @@ namespace TerrariaFortress.Items.Weapons
                     {
                         Vector2 perturbedSpeed = new Vector2(speedX, speedY).RotatedBy(MathHelper.Lerp(-rotation, rotation, i / (projectiles - 1)));
                         Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, perturbedSpeed, type, (int)((damage * 1.75f) / projectiles), knockBack, player.whoAmI);
+                        if (critting)
+                        {
+                            if (projectile.modProjectile is TFProjectile TFProjectile)
+                            {
+                                TFProjectile.CritBoost();
+                            }
+                        }
                     }
-                    Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/ScattergunShoot"));
                     player.ConsumeItem(item.useAmmo);
                 }
             }
@@ -62,12 +73,16 @@ namespace TerrariaFortress.Items.Weapons
                 {
                     Vector2 perturbedSpeed = new Vector2(speedX, speedY).RotatedBy(MathHelper.Lerp(-rotation, rotation, i / (projectiles - 1)));
                     Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, perturbedSpeed, type, (int)((damage * 1.75f) / projectiles), knockBack, player.whoAmI);
+                    if (critting)
+                    {
+                        if (projectile.modProjectile is TFProjectile TFProjectile)
+                        {
+                            TFProjectile.CritBoost();
+                        }
+                    }
                 }
-                Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/ScattergunShoot"));
                 player.ConsumeItem(item.useAmmo);
             }
-
-            return false;
         }
 
         public override void DrawWeaponHoldout(Player player)

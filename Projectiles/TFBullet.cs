@@ -1,7 +1,6 @@
 using Terraria;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using static TerrariaFortress.TerrariaFortress;
 using Terraria.ID;
 
 namespace TerrariaFortress.Projectiles
@@ -30,7 +29,7 @@ namespace TerrariaFortress.Projectiles
 			rangedDamage = true;
 		}
 
-		public override void AI()
+		public override void TFAI()
         {
 			projectile.rotation = projectile.velocity.ToRotation();
             //if (projectile.timeLeft % 4 == 0 && damageFalloffCounter > 0)
@@ -50,7 +49,15 @@ namespace TerrariaFortress.Projectiles
             {
 				distance = modifier;
             }
-			damage = (int)(damage / (MathHelper.Clamp(distance, modifier, distance) / modifier));
+
+			if (critting)
+			{
+
+			}
+			else
+            {
+				damage = (int)(damage / (MathHelper.Clamp(distance, modifier, distance) / modifier));
+			}
 		}
 
         public override bool OnTileCollide(Vector2 oldVelocity)

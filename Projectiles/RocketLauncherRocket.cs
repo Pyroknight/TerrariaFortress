@@ -34,7 +34,7 @@ namespace TerrariaFortress.Projectiles
             base.Explode(radius, strength);
         }
 
-        public override void AI()
+        public override void TFAI()
         {
 			Player player = Main.player[projectile.owner];
 

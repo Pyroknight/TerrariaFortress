@@ -8,7 +8,7 @@ using static TerrariaFortress.TerrariaFortress;
 
 namespace TerrariaFortress.Items.Weapons
 {
-    public class StickybombLauncher : TFWeapon
+    public class StickybombLauncher : TFItem
     {
         public int chargeTimer = 240;
         public override void SetStaticDefaults()
@@ -30,17 +30,12 @@ namespace TerrariaFortress.Items.Weapons
             item.useAnimation = 36;
             item.shootSpeed = 8.12f;
             item.shoot = ModContent.ProjectileType<StickybombLauncherStickybomb>();
-            item.value = Item.gold * 80;
+            item.value = Item.buyPrice(gold: 80);
         }
 
-        public override bool TFCanUseItem(Player player)
+        public override void SetConstantDefaults()
         {
-            if (player.ownedProjectileCounts[item.shoot] < 8)
-            {
-                return true;
-            }
-
-            return false;
+            basicUseSound = TFUseSound("StickybombLauncherShoot");
         }
 
         public override void TFDescription(List<TooltipLine> tooltips)
@@ -58,7 +53,7 @@ namespace TerrariaFortress.Items.Weapons
                 {
                     if (player == Main.player[Main.myPlayer])
                     {
-                        if (stickyBomb.armingTimer == 0 && Main.mouseRight && !player.mouseInterface && !stickyBomb.detonated && !player.dead && player.active)
+                        if (stickyBomb.armingTimer == 0 && Main.mouseRight && !Main.blockMouse && !player.mouseInterface && !stickyBomb.detonated && !player.dead && player.active)
                         {
                             stickyBomb.detonated = true;
                         }
@@ -67,7 +62,7 @@ namespace TerrariaFortress.Items.Weapons
             }
         }
 
-        public override bool Shoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
+        public override void TFShoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
         {
             if (player == Main.player[Main.myPlayer])
             {
@@ -84,7 +79,13 @@ namespace TerrariaFortress.Items.Weapons
                                 stickyBomb.armingTimer = 42;
                                 stickyBomb.detonationTimer = 12;
                             }
-                            Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/StickybombLauncherShoot"));
+                            if (critting)
+                            {
+                                if (projectile.modProjectile is TFProjectile TFProjectile)
+                                {
+                                    TFProjectile.CritBoost();
+                                }
+                            }
                             player.ConsumeItem(item.useAmmo);
                         }
                     }
@@ -98,13 +99,17 @@ namespace TerrariaFortress.Items.Weapons
                             stickyBomb.detonationTimer = 42;
                             stickyBomb.detonationTimer = 12;
                         }
-                        Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/StickybombLauncherShoot"));
+                        if (critting)
+                        {
+                            if (projectile.modProjectile is TFProjectile TFProjectile)
+                            {
+                                TFProjectile.CritBoost();
+                            }
+                        }
                         player.ConsumeItem(item.useAmmo);
                     }
                 }
             }
-
-            return false;
         }
 
         public override void DrawWeaponHoldout(Player player)

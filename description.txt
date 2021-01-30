@@ -1,33 +1,61 @@
-https://discord.gg/rqTAJrSzDc Join the Official Terraria Fortress Discord here!
+*** THE BEST SOURCE OF INFORMATION FOR THIS MOD IS THE OFFICIAL DISCORD LINKED BELOW. ***
+
+https://discord.gg/rqTAJrSzDc Join the official Terraria Fortress Discord here!
 
 After... some amount of time? Hopefully it will have been worth the wait!
 
 This mod is a small content mod in that it is not its own exact creation.
 All of it revolves around the hit shooter Team Fortress 2 by Valve Corporation.
 
-CURRENTLY FEATURES POST SKELETRON:
--Pyro's Flamethrower, featuring afterburn and airblast as well as pvp compatability
--Stock Shotgun
--Rocket Launcher, featuring prototype rocket jumping
--Fire Axe
--Shovel
--Bat
--Scattergun
--Pistol
--Grenade Launcher
--Stickybomb Launcher
--Bottle
+CURRENTLY FEATURES:
 
-Celebrate Terraria's Fortress download milestones
+
+
+* Sold by Demolitionist, post-Skeletron:
+	-Scattergun
+	-Pistol
+	-Bat
+	-Pyro's Flamethrower, featuring afterburn and airblast as well as pvp compatability
+	-Shotgun
+	-Fire Axe
+	-Rocket Launcher, featuring functional rocket jumping
+	-Shovel
+	-Grenade Launcher
+	-Stickybomb Launcher
+	-Bottle, featuring shattering upon critical hits and repairing when holstered
+	-Minigun, featuring functional revving up and down
+	-Fists, featuring matching your player's skin color while in the inventory
+
+* Sold by Arms Dealer, post-Skeletron:
+	-Electrocritiogram, a device that displays your random crit chance
+
+Celebrate Terraria Fortress' download milestones
 with a special surprise from the Party Girl's shop!
 
 TO BE ADDED:
-Heavy stock weapons.
+Engineer stock weapons and (potentially separate update) buildings.
 
-Stay tuned! Note this mod is *VERY* much in a work in progress state, so please
-report any and all bugs to Pyroknight#1787 through dms on the TModLoader official discord.
-
-CREDITS: RighteousRyan, Leaper, M46N0L14, Snek, other friends, major spriters, coders and cool dudes / game balance, Webmilio for support via Discord Nitro; 
-TModLoader discord, helping with a lot of code;
+Stay tuned! Note that this mod is *VERY* much in a work in progress state, so please
+report any and all bugs in #tf_terraria_fortress in the official Terraria Fortress Discord.
 
 Thanks, and have fun.
+
+CREDITS
+
+The Terraria Fortress DevTeam, comprised of:
+Pyroknight (lead developer, coder, spriter)
+Magnolia (head spriter)
+Leaper (head spriter, item presentation panels)
+RighteousRyan (head coder, GitHub assistance)
+
+Snek (bug reporting duty, additional contributions / code)
+
+Webmilio (supporting with gifted Discord Nitro, additional contributions / GitHub assistance)
+
+TModLoader (lots of help, and making this possible)
+
+Re-Logic (making a game as sick as Terraria, and making this possible)
+
+Valve Corporation (developing our favorite war-themed hat simulator)
+
+...and You (for reading all the way here and supporting the mod!)

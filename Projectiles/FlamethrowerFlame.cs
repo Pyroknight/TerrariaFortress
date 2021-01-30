@@ -34,7 +34,7 @@ namespace TerrariaFortress.Projectiles
 			fireDamage = true;
         }
 
-		public override void AI()
+		public override void TFAI()
         {
 			projectile.rotation = projectile.velocity.ToRotation();
 			Player player = Main.player[projectile.owner];
@@ -110,6 +110,12 @@ namespace TerrariaFortress.Projectiles
 				dustType = 64;
 				alpha = 230;
 			}
+			if (critting)
+            {
+				color = new Color(255, 0, 0);
+				dustType = 64;
+				alpha = 230;
+			}
 			else if (projectile.frame >= 16 && projectile.frame <= 19)
 			{
 				color = new Color(200, 50, 50);
@@ -140,13 +146,26 @@ namespace TerrariaFortress.Projectiles
 			}
 		}
 
+		public override void CritEffects()
+        {
+			if (Main.rand.Next(4) == 0)
+			{
+				float radius = 10f;
+				Vector2 speed = projectile.velocity.RotatedBy(MathHelper.ToRadians(Main.rand.NextFloat(-radius * 0.5f, radius * 0.5f)));
+				Dust dust1 = Dust.NewDustDirect(projectile.position, projectile.width, projectile.height, 182, speed.X * 0.25f, speed.Y * 0.25f, 0, new Color(255, 255, 0), MathHelper.Clamp(dustScaleTimer * 0.2f, 0f, 2f));
+				dust1.noGravity = true;
+				dust1.noLight = true;
+			}
+		}
+
         public override void OnHitNPC(NPC target, int damage, float knockback, bool crit)
         {
 			if (!target.buffImmune[BuffID.OnFire])
 			{
 				if (!target.HasBuff(ModContent.BuffType<Afterburn>()))
 				{
-					target.AddBuff(ModContent.BuffType<Afterburn>(), 210, true);
+					Main.PlaySound(SoundLoader.customSoundType, (int)target.Center.X, (int)target.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/Ignite"));
+					target.AddBuff(ModContent.BuffType<Afterburn>(), 210);
 				}
 				else if (target.buffTime[target.FindBuffIndex(ModContent.BuffType<Afterburn>())] < 600)
 				{
@@ -155,13 +174,14 @@ namespace TerrariaFortress.Projectiles
 			}
 		}
 
-        public override void OnHitPlayer(Player target, int damage, bool crit)
+        public override void OnHitPvp(Player target, int damage, bool crit)
         {
 			if (!target.buffImmune[BuffID.OnFire])
 			{
 				if (!target.HasBuff(ModContent.BuffType<Afterburn>()))
 				{
-					target.AddBuff(ModContent.BuffType<Afterburn>(), 210, true);
+					Main.PlaySound(SoundLoader.customSoundType, (int)target.Center.X, (int)target.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/Ignite"));
+					target.AddBuff(ModContent.BuffType<Afterburn>(), 210);
 				}
 				else if (target.buffTime[target.FindBuffIndex(ModContent.BuffType<Afterburn>())] < 600)
 				{
@@ -175,6 +195,11 @@ namespace TerrariaFortress.Projectiles
 			Texture2D texture = Main.projectileTexture[projectile.type];
 			SpriteEffects spriteEffect = projectile.spriteDirection == -1 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 			Rectangle rectangle = texture.Frame(1, 20, 0, projectile.frame);
+
+			if (critting)
+            {
+				texture = ModContent.GetTexture("TerrariaFortress/Projectiles/FlamethrowerFlameCrit");
+            }
 
 			for (int i = 0; i < projectile.oldPos.Length; i++)
             {

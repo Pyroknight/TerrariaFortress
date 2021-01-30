@@ -7,12 +7,13 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using TerrariaFortress.Dusts;
 using static TerrariaFortress.TerrariaFortress;
+using System.Net;
 
 namespace TerrariaFortress.Items
 {
-    public class NoiseMakerBirthday : TFWeapon
+    public class NoiseMakerBirthday : TFItem
     {
-        public const int downloads = 5000;
+        public string downloads = "";
 
         public override void SetStaticDefaults()
         {
@@ -31,12 +32,13 @@ namespace TerrariaFortress.Items
             item.useAnimation = 70;
             item.value = Item.buyPrice(0);
             item.autoReuse = true;
+            downloads = TFUtils.downloads.ToString();
         }
 
         public override void TFDescription(List<TooltipLine> tooltips)
         {
             AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributePositive], "Unlimited use");
-            AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "Thank you for " + downloads + " downloads!");
+            AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "Thank you for " + downloads + "+ downloads!");
             AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "Release barrages of joy and festivity on use");
         }
 
@@ -44,15 +46,23 @@ namespace TerrariaFortress.Items
         {
             Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/NoiseMaker/happy_birthday_tf_" + Main.rand.Next(30)), 0.4f);
             Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/NoiseMaker/PyroThanksFor2k" + Main.rand.Next(6)));
-            CombatText combatText = Main.combatText[CombatText.NewText(new Rectangle((int)player.MountedCenter.X, (int)player.MountedCenter.Y, 0, 0), new Color(Main.DiscoR, Main.DiscoB, Main.DiscoG), "Thank you for " + downloads + "+ downloads!", true, true)];
-            combatText.rotation = 0f;
-            combatText.velocity.Y *= 2f;
-            combatText.lifeTime = 100;
-            CombatText combatText2 = Main.combatText[CombatText.NewText(new Rectangle((int)player.MountedCenter.X, (int)player.MountedCenter.Y, 0, 0), new Color(255, 127, 0), "-Terraria Fortress DevTeam", true, true)];
-            combatText2.rotation = 0f;
-            combatText2.velocity.Y *= 2f;
-            combatText2.position.Y += 16f;
-            combatText2.lifeTime = 100;
+            int index1 = CombatText.NewText(new Rectangle((int)player.MountedCenter.X, (int)player.MountedCenter.Y, 0, 0), Main.DiscoColor, "Thank you for " + downloads + "+ downloads!", true, true);
+            if (index1 >= 0 && index1 < Main.combatText.Length)
+            {
+                CombatText combatText = Main.combatText[index1];
+                combatText.rotation = 0f;
+                combatText.velocity.Y *= 2f;
+                combatText.lifeTime = 100;
+            }
+            int index2 = CombatText.NewText(new Rectangle((int)player.MountedCenter.X, (int)player.MountedCenter.Y, 0, 0), new Color(255, 127, 0), "-Terraria Fortress DevTeam", true, true);
+            if (index2 >= 0 && index2 < Main.combatText.Length)
+            {
+                CombatText combatText2 = Main.combatText[index2];
+                combatText2.rotation = 0f;
+                combatText2.velocity.Y *= 2f;
+                combatText2.position.Y += 16f;
+                combatText2.lifeTime = 100;
+            }
 
             #region Vanilla Firework
             Vector2 vector17 = (vector17 = ((float)Main.rand.NextDouble() * ((float)Math.PI * 2f)).ToRotationVector2());
@@ -60,13 +70,13 @@ namespace TerrariaFortress.Items
             float num675 = (float)Main.rand.Next(10, 15) * 0.66f;
             float num676 = (float)Main.rand.Next(4, 7) / 2f;
             int num677 = 30;
-            for (int num678 = 0; (float)num678 < (float)num677 * num674; num678++)
+            for (int i = 0; i < (float)num677 * num674; i++)
             {
-                if (num678 % num677 == 0)
+                if (i % num677 == 0)
                 {
                     vector17 = vector17.RotatedBy((float)Math.PI * 2f / num674);
                 }
-                float scaleFactor3 = MathHelper.Lerp(num676, num675, (float)(num678 % num677) / (float)num677);
+                float scaleFactor3 = MathHelper.Lerp(num676, num675, (float)(i % num677) / (float)num677);
                 int num679 = 130;
                 int num680 = Dust.NewDust(new Vector2(player.MountedCenter.X, player.MountedCenter.Y - 160f), 6, 6, num679, 0f, 0f, 100);
                 Dust dust197 = Main.dust[num680];
@@ -78,10 +88,10 @@ namespace TerrariaFortress.Items
                 Main.dust[num680].scale = 1.3f;
                 Main.dust[num680].noGravity = true;
             }
-            for (int num681 = 0; num681 < 100; num681++)
+            for (int i = 0; i < 100; i++)
             {
                 float num682 = num675;
-                if (num681 < 30)
+                if (i < 30)
                 {
                     num682 = (num676 + num675) / 2f;
                 }
@@ -109,8 +119,8 @@ namespace TerrariaFortress.Items
             int dustLength = 72;
             for (int i = 0; i < dustLength; i++)
             {
-                Vector2 vel = new Vector2(0f, -2f).RotatedBy(MathHelper.ToRadians(i * (360 / dustLength)));
-                Dust dust1 = Dust.NewDustDirect(player.position, player.width, player.height, Main.rand.Next(139, 143), vel.X, vel.Y - 1f, 0, default, 1f);
+                Vector2 velocity = new Vector2(0f, -2f).RotatedBy(MathHelper.ToRadians(i * (360 / dustLength)));
+                Dust dust1 = Dust.NewDustDirect(player.position, player.width, player.height, Main.rand.Next(139, 143), velocity.X, velocity.Y - 1f, 0, default, 1f);
             }
 
             for (int i = 0; i < Main.rand.Next(5, 26); i++)

@@ -10,13 +10,18 @@ using static TerrariaFortress.TerrariaFortress;
 
 namespace TerrariaFortress.Items.Weapons
 {
-    public class Flamethrower : TFWeapon
+    public class Flamethrower : TFItem
     {
         SoundEffectInstance flamethrowerStartSound;
         SoundEffectInstance flamethrowerLoopSound;
 
-        int flamethrowerTimer = 0;
-        int ammoConsumptionTimer = 0;
+        public int flamethrowerTimer = 0;
+        public int ammoConsumptionTimer = 0;
+        public int ammoConsumptionTimerMax = 4;
+        public bool pilotSoundCheck = false;
+        public bool startSoundCheck = false;
+        public bool endSoundCheck = false;
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Flame Thrower");
@@ -42,10 +47,10 @@ namespace TerrariaFortress.Items.Weapons
             AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributePositive], "Extinguishing teammates restores 20 health");
             AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "Afterburn reduces Medi Gun healing and resist shield effects.");
             AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "Alt-Fire: Release a blast of air that pushes enemies and");
-            AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "projectiles and extinguish teammates that are on fire.");
+            AddTFAttribute(tooltips, TFColor[(int)TFColorID.AttributeNeutral], "projectiles and extinguishes teammates that are on fire.");
         }
 
-        public override bool Shoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
+        public override void TFShoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
         {
             Vector2 spawnPosition = ShootSpawnPos(player, 56f, 0f);
             if (Collision.CanHitLine(player.MountedCenter, 0, 0, spawnPosition, 0, 0))
@@ -56,17 +61,25 @@ namespace TerrariaFortress.Items.Weapons
                     {
                         player.ConsumeItem(item.useAmmo);
                     }
-                    Dust dust1 = Dust.NewDustPerfect(spawnPosition + new Vector2(-15, -15), ModContent.DustType<SmallFlash>(), new Vector2(0f, 0f), 0, default, 1f);
+                    Dust dust1 = Dust.NewDustPerfect(spawnPosition + new Vector2(-15f, -15f), ModContent.DustType<SmallFlash>(), new Vector2(0f, 0f), 0, default, 1f);
                     Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, new Vector2(speedX, speedY), ModContent.ProjectileType<FlamethrowerAirblast>(), 0, 0, player.whoAmI);
                 }
                 else
                 {
-                    if (++ammoConsumptionTimer > 4 && Collision.CanHitLine(player.MountedCenter, 0, 0, spawnPosition, 0, 0))
+                    if (++ammoConsumptionTimer > ammoConsumptionTimerMax && Collision.CanHitLine(player.MountedCenter, 0, 0, spawnPosition, 0, 0))
                     {
                         ammoConsumptionTimer = 0;
                         player.ConsumeItem(item.useAmmo);
                     }
                     Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, new Vector2(speedX, speedY), type, damage, knockBack, player.whoAmI);
+                    if (critting)
+                    {
+                        if (projectile.modProjectile is TFProjectile TFProjectile)
+                        {
+                            TFProjectile.CritBoost();
+                            TFProjectile.critDamageMultiplier = 1.75f;
+                        }
+                    }
                 }
             }
             else
@@ -79,21 +92,27 @@ namespace TerrariaFortress.Items.Weapons
                     {
                         player.ConsumeItem(item.useAmmo);
                     }
-                    Dust dust1 = Dust.NewDustPerfect(spawnPosition + new Vector2(-15, -15), ModContent.DustType<SmallFlash>(), new Vector2(0f, 0f), 0, default, 1f);
+                    Dust dust1 = Dust.NewDustPerfect(spawnPosition + new Vector2(-15f, -15f), ModContent.DustType<SmallFlash>(), new Vector2(0f, 0f), 0, default, 1f);
                     Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, new Vector2(speedX, speedY), ModContent.ProjectileType<FlamethrowerAirblast>(), 0, 0, player.whoAmI);
                 }
                 else
                 {
-                    if (++ammoConsumptionTimer > 4 && Collision.CanHitLine(player.MountedCenter, 0, 0, spawnPosition, 0, 0))
+                    if (++ammoConsumptionTimer > ammoConsumptionTimerMax && Collision.CanHitLine(player.MountedCenter, 0, 0, spawnPosition, 0, 0))
                     {
                         ammoConsumptionTimer = 0;
                         player.ConsumeItem(item.useAmmo);
                     }
                     Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, new Vector2(speedX, speedY), type, damage, knockBack, player.whoAmI);
+                    if (critting)
+                    {
+                        if (projectile.modProjectile is TFProjectile TFProjectile)
+                        {
+                            TFProjectile.CritBoost();
+                            TFProjectile.critDamageMultiplier = 1.75f;
+                        }
+                    }
                 }
             }
-
-            return false;
         }
 
         public override bool CanUseItem(Player player)
@@ -111,8 +130,77 @@ namespace TerrariaFortress.Items.Weapons
             return base.CanUseItem(player);
         }
 
-        public override void UpdateInventory(Player player)
+        public void ResetAmmoConsumptionTimer()
         {
+            ammoConsumptionTimer = ammoConsumptionTimerMax + 1;
+        }
+
+        public override void TFUpdateInventory(Player player)
+        {
+            if (player == Main.player[Main.myPlayer])
+            {
+                if (player.HeldItem.modItem == this)
+                {
+                    void SoundCheck()
+                    {
+                        if (!pilotSoundCheck)
+                        {
+                            Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerPilot"));
+                            pilotSoundCheck = true;
+                        }
+
+                        if (CanUseItem(player))
+                        {
+                            if (!player.controlUseItem)
+                            {
+                                if (!endSoundCheck)
+                                {
+                                    Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/FlamethrowerEnd"));
+                                    endSoundCheck = true;
+                                }
+                                startSoundCheck = false;
+                            }
+                            else
+                            {
+                                if (!startSoundCheck)
+                                {
+                                    startSoundCheck = true;
+                                }
+                                endSoundCheck = false;
+                            }
+                        }
+                    }
+
+                    Vector3 blueFlameColor = new Vector3(255, 255, 255);
+                    float brightness = 0.15f;
+                    Vector2 blueFlamePosition = player.MountedCenter + new Vector2(player.direction * 61f, -3f).RotatedBy(player.itemRotation + player.fullRotation);
+                    Vector2 toMouse = Vector2.Normalize(Main.MouseWorld - player.MountedCenter);
+
+                    Point point = blueFlamePosition.ToTileCoordinates();
+                    if (!WorldGen.SolidOrSlopedTile(point.X, point.Y) && !Collision.WetCollision(blueFlamePosition, 0, 0))
+                    {
+                        Lighting.AddLight(blueFlamePosition, blueFlameColor / 255f * brightness);
+                        Dust dust1 = Dust.NewDustPerfect(blueFlamePosition, Terraria.ID.DustID.Electric, new Vector2(0f, -0.6f) + (player.altFunctionUse == 2 && TFUtils.InRange(player.itemAnimation, player.itemAnimationMax - 10f, player.itemAnimationMax) ? toMouse * 12f : new Vector2(0f, 0f)), 100, default, player.controlUseItem ? 0.2f : 0.5f);
+                        dust1.noGravity = true;
+                        dust1.noLight = true;
+                    }
+                }
+                else
+                {
+                    pilotSoundCheck = false;
+                }
+            }
+
+            if (player.HeldItem.modItem != this)
+            {
+                ResetAmmoConsumptionTimer();
+            }
+            else if (!player.controlUseItem)
+            {
+                ResetAmmoConsumptionTimer();
+            }
+
+            #region Old Sound Code
             //if (player.HeldItem.type == ModContent.ItemType<Flamethrower>())
             //{   
             //    if (flamethrowerTimer > 0)
@@ -165,6 +253,7 @@ namespace TerrariaFortress.Items.Weapons
             //if (player.HeldItem.type != ModContent.ItemType<Flamethrower>())
             //{
             //}
+            #endregion
         }
 
         public override bool AltFunctionUse(Player player)

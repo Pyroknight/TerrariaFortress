@@ -7,7 +7,7 @@ using static TerrariaFortress.TerrariaFortress;
 
 namespace TerrariaFortress.Items.Weapons
 {
-    public class RocketLauncher : TFWeapon
+    public class RocketLauncher : TFItem
     {
 
         public override void SetStaticDefaults()
@@ -31,7 +31,12 @@ namespace TerrariaFortress.Items.Weapons
             item.shoot = ModContent.ProjectileType<RocketLauncherRocket>();
         }
 
-        public override bool Shoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
+        public override void SetConstantDefaults()
+        {
+            basicUseSound = TFUseSound("RocketLauncherShoot");
+        }
+
+        public override void TFShoot(Player player, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
         {
             Vector2 spawnPosition = ShootSpawnPos(player, 26f, -6f) + new Vector2(player.direction * -12f, 0f);
             if (Collision.CanHitLine(player.MountedCenter, 0, 0, spawnPosition, 0, 0))
@@ -39,7 +44,13 @@ namespace TerrariaFortress.Items.Weapons
                 if (player.CountItem(item.useAmmo, 1) >= 1)
                 {
                     Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, new Vector2(speedX, speedY), type, damage, knockBack, player.whoAmI);
-                    Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/RocketLauncherShoot"));
+                    if (critting)
+                    {
+                        if (projectile.modProjectile is TFProjectile TFProjectile)
+                        {
+                            TFProjectile.CritBoost();
+                        }
+                    }
                     player.ConsumeItem(item.useAmmo);
                 }
             }
@@ -48,11 +59,15 @@ namespace TerrariaFortress.Items.Weapons
                 spawnPosition = position;
 
                 Projectile projectile = Projectile.NewProjectileDirect(spawnPosition, new Vector2(speedX, speedY), type, damage, knockBack, player.whoAmI);
-                Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/RocketLauncherShoot"));
+                if (critting)
+                {
+                    if (projectile.modProjectile is TFProjectile TFProjectile)
+                    {
+                        TFProjectile.CritBoost();
+                    }
+                }
                 player.ConsumeItem(item.useAmmo);
             }
-
-            return false;
         }
 
         public override void DrawWeaponHoldout(Player player)

@@ -24,6 +24,7 @@ namespace TerrariaFortress.NPCs
         {
             Main.npcFrameCount[npc.type] = 22;
             NPCID.Sets.AttackFrameCount[npc.type] = 1;
+            DisplayName.SetDefault("Ms. Pauling");
         }
 
         public override void SetDefaults()

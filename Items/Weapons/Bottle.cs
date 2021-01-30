@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace TerrariaFortress.Items.Weapons
 {
-    public class Bottle : TFWeapon
+    public class Bottle : TFItem
     {
         public bool broken = false;
 
@@ -36,14 +36,54 @@ namespace TerrariaFortress.Items.Weapons
             }
         }
 
-        public override void OnHitTile(Player player)
+        public void Break(Player player)
         {
             broken = true;
+            for (int i = 0; i < 4; i++)
+            {
+                Gore shard = Gore.NewGorePerfect(player.MountedCenter, new Vector2(0f, -8f).RotatedByRandom(MathHelper.ToRadians(360f)), mod.GetGoreSlot<Details.BottleShards>());
+                shard.frame = (byte)i;
+            }
+        }
+
+        public override void OnHitTile(Player player)
+        {
+            if (critting)
+            {
+                if (!broken)
+                {
+                    Break(player);
+                }
+            }
+        }
+
+        public override void OnHitNPC(Player player, NPC target, int damage, float knockBack, bool crit)
+        {
+            if (critting)
+            {
+                if (!broken)
+                {
+                    Break(player);
+                    Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/" + meleeWorldCollisionSound));
+                }
+            }
+        }
+
+        public override void OnHitPvp(Player player, Player target, int damage, bool crit)
+        {
+            if (critting)
+            {
+                if (!broken)
+                {
+                    Break(player);
+                    Main.PlaySound(SoundLoader.customSoundType, (int)player.MountedCenter.X, (int)player.MountedCenter.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/" + meleeWorldCollisionSound));
+                }
+            }
         }
 
         public override void SetConstantDefaults()
         {
-            basicUseSound = "MeleeSwing";
+            basicUseSound = TFUseSound("MeleeSwing");
             meleeEntityCollisionSound = "AxeFleshHit" + Main.rand.Next(1, 4);
             meleeWorldCollisionSound = "BottleWorldHit" + Main.rand.Next(1, 4);
         }
@@ -58,7 +98,7 @@ namespace TerrariaFortress.Items.Weapons
         {
             if (player.HeldItem.modItem == this)
             {
-                DrawSimpleMeleeHoldout(ModContent.GetTexture("TerrariaFortress/Items/Weapons/Bottle2"), new Vector2(0f, 0f), new Vector2(-2f, -2f), MeleeRotation(player), LightColor(player), player, 1, 2, 0, broken ? 1 : 0);
+                DrawSimpleMeleeHoldout(ModContent.GetTexture("TerrariaFortress/Items/Weapons/Bottle2"), new Vector2(0f, 0f), new Vector2(-2f, -2f), ItemRotation(player), LightColor(player), player, 1, 2, 0, broken ? 1 : 0);
             }
         }
     }
