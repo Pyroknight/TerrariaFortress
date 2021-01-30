@@ -21,11 +21,22 @@ using System.ComponentModel;
 using Terraria.ModLoader.Config;
 using System.Net;
 using System.Threading;
+using Terraria.UI.Chat;
 
 namespace TerrariaFortress
 {
     public static class TFUtils
     {
+        /// <summary>
+        /// Detects a click from either Mouse1 or Mouse2.
+        /// </summary>
+        /// <param name="detectLeft">If true, will try and detect a left click.</param>
+        /// <returns>Whether or not it has been clicked.</returns>
+        public static bool CanDetectClick(bool detectLeft)
+        {
+            return detectLeft ? Main.mouseLeft && Main.mouseLeftRelease : Main.mouseRight && Main.mouseRightRelease;
+        }
+
         /// <summary>
         /// Generates a color from a gradient.
         /// </summary>
@@ -107,6 +118,78 @@ namespace TerrariaFortress
         public override void Load()
         {
             TFUtils.downloads = TFUtils.GetDownloadCount();
+            On.Terraria.Main.DrawMenu += Main_DrawMenu;
+        }
+
+        internal static string changeLogsString;
+        internal static string changeLogsStringMessage;
+        internal static bool changelogsOpened;
+        internal static Rectangle logsBox;
+        internal static Color hoverColor;
+        private void Main_DrawMenu(On.Terraria.Main.orig_DrawMenu orig, Main self, GameTime gameTime)
+        {
+            if (!changelogsOpened)
+            {
+                changeLogsString = "Open Terraria Fortress Changelogs";
+                changeLogsStringMessage = "";
+
+            }
+            else
+            {
+                changeLogsString = "Close Terraria Fortress Changelogs";
+                changeLogsStringMessage = "v0.5 - What Valve Couldn't Promise"
++ "\n- Brought back everyone's favorite Soviet giant for the mod icon"
+ + "\n- Bug fixes and changes, specificaly:"
+                + "\n* Cleaned up tons of inconsistencies in code"
+               + "\n* Minor visual tweaks all around, i.e.afterburn flames looking more like fire and renaming \"Mann Co. Ammo Box\" to \n\"Mann Co. Medium Ammo Crate\" and updating its sprite"
+  + "\n*A lot of visual changes, including:"
+      + "\n* The player's hand not rotating to the cursor for weapon holdouts"
+     + "\n* The actual sprite not rotating / acting weird with muzzle flashes"
+      + "\n* Sprite repositioning for a lot of holdouts"
+     + "\n* Fixed inconsistencies in the holdouts for melees"
+     + "\n* The Flame Thrower's small blue flame at the end now emits actual light "
++ "\nand flame dust which reacts to motion / airblast"
+     + "\n* The names of TF items are now in all caps, just like in TF2"
+ + "\n* Fixing inconsistencies with weapons, including:\n"
+
+     + "\n* Fixed the Flame Thrower firing without consuming ammo at times"
+     + "\n* A lot of tweaks to airblast, should no longer fire in uncertain directions, extinguish allies properly, and push enemies at a reasonable force"
+     + "\n* Grenade Launcher pills no longer make nonstop impact noises"
+     + "\n* Stickybomb Launcher stickies will now stack damage, so that you can't survive mass explosions and traverse the skies"
+ + "\n* Ignited enemies will now play a burning fwoosh sound upon ignition(Flame Thrower)\n"
+
++ "\n- Reached 8000 + downloads! Thank you so much for your non-stop support!"
+ + "\n- Added Heavy's Minigun, which can rev up and down with right click as well, and stay revved"
+ + "\n- Added Heavy's Fists, whose hand's skin color change to your player's while in the inventory"
+ + "\n- Added the very infamous random crits! Mini - crits were also added, but are currently unused.\nBuild damage overtime to reach your minimum of 2 % to 12 % to land a random critical hit when using weapons.\nYour stored chance deteriorates overtime.";
+
+                ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch, Main.fontDeathText, changeLogsStringMessage, new Vector2(10, 25), Color.White, 0f, Vector2.Zero, new Vector2(0.25f, 0.25f));
+            }
+
+            Vector2 letsFuckingMeasure = Main.fontDeathText.MeasureString(changeLogsString);
+
+            float x = (int)letsFuckingMeasure.X * 0.25f;
+            float y = (int)letsFuckingMeasure.Y * 0.25f;
+            logsBox = new Rectangle(10, 10, (int)x, (int)y);
+
+            if (logsBox.Contains(Main.MouseScreen.ToPoint()))
+            {
+                hoverColor = Color.Yellow;
+
+                if (TFUtils.CanDetectClick(true))
+                {
+                    changelogsOpened = !changelogsOpened;
+                    Main.PlaySound(!changelogsOpened ? SoundID.MenuClose : SoundID.MenuOpen);
+                }
+            }
+            else
+            {
+                hoverColor = Color.White;
+            }
+
+            ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch, Main.fontDeathText, changeLogsString, new Vector2(10, 10), hoverColor, 0f, Vector2.Zero, new Vector2(0.25f, 0.25f));
+
+            orig(self, gameTime);
         }
 
         public static readonly Color[] TFColor =

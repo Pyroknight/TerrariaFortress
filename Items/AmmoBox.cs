@@ -25,9 +25,15 @@ namespace TerrariaFortress.Items
 
         public override bool OnPickup(Player player)
         {
-            Main.PlaySound(SoundLoader.customSoundType, (int)item.Center.X, (int)item.Center.Y, mod.GetSoundSlot(SoundType.Custom, "Sounds/Custom/AmmoPickup"));
-
-            return true;
+            for (int i = 0; i < Main.maxInventory; i++)
+            {
+                Item inventoryItem = player.inventory[i];
+                if (!inventoryItem.IsAir) // iirc this is the method, dont really remember
+                {
+                    Main.PlaySound(mod.GetLegacySoundSlot(SoundType.Custom, "Sounds/Custom/AmmoPickup"));
+                }
+            }
+            return base.OnPickup(player);
         }
 
         public override bool PreDrawInWorld(SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
