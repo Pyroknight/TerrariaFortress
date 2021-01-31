@@ -74,7 +74,13 @@ namespace TerrariaFortress.Projectiles
             }
         }
 
-        public override bool OnTileCollide(Vector2 oldVelocity)
+		public override void CritEffects()
+		{
+			Dust dust1 = Dust.NewDustPerfect(projectile.Center + new Vector2(-7.5f, -7.5f), ModContent.DustType<SmallFlash>(), new Vector2(0f, 0f), 0, new Color(255, 0, 0), 0.5f);
+			base.CritEffects();
+		}
+
+		public override bool OnTileCollide(Vector2 oldVelocity)
         {
 			Explode();
 			return false;

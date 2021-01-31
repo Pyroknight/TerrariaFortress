@@ -27,6 +27,17 @@ namespace TerrariaFortress
 {
     public static class TFUtils
     {
+        public static int downloads = 0;
+
+        public struct UITextures
+        {
+            public static TerrariaFortress mod => ModContent.GetInstance<TerrariaFortress>();
+            public static Texture2D Beige = mod.GetTexture("Extras/UI1");
+            public static Texture2D Tooltip = mod.GetTexture("Items/TFItemTooltipUI");
+            public static Texture2D White = mod.GetTexture("Extras/UI2");
+            public static Texture2D Logo = mod.GetTexture("Extras/Logo");
+        }
+
         /// <summary>
         /// Detects a click from either Mouse1 or Mouse2.
         /// </summary>
@@ -105,91 +116,221 @@ namespace TerrariaFortress
             htmlCode = Between(htmlCode, "Downloads", "</dd>");
             htmlCode = htmlCode.Remove(0, 58); 
             int downloadCount = int.Parse(htmlCode);
-            downloadCount = (int)(Math.Floor(downloadCount / 100f) * 100f);
+            float round = 100f;
+            round = round * (float)Math.Pow(10f, downloadCount.ToString().Length - 4);
+            downloadCount = (int)(Math.Floor(downloadCount / round) * round);
             
             return downloadCount;
         }
 
-        public static int downloads = 0;
+        public static string DownloadCountFormatted()
+        {
+            return string.Format("{0:n0}", downloads);
+        }
+
+        /// <summary>   
+        /// For drawing tiled backgrounds, such as like in TF Item tooltips. It is recommended to use a square for the texture.
+        /// </summary>
+        public static void DrawBackground(Texture2D texture, Vector2 position, Vector2 dimensions, Vector2 padding, Color color, int cornerSize = 16)
+        {
+            SpriteBatch spriteBatch = Main.spriteBatch;
+            Vector2 sideLength = new Vector2(texture.Width - cornerSize * 2, texture.Height - cornerSize * 2);
+            Vector2 sidePosition = new Vector2(texture.Width - cornerSize, texture.Height - cornerSize);
+            int sideLengthX = (int)sideLength.X;
+            int sideLengthY = (int)sideLength.Y;
+            int sidePositionX = (int)sidePosition.X;
+            int sidePositionY = (int)sidePosition.Y;
+            Rectangle topLeft = new Rectangle(0, 0, cornerSize, cornerSize);
+            Rectangle topMiddle = new Rectangle(cornerSize, 0, sideLengthX, cornerSize);
+            Rectangle topRight = new Rectangle(sidePositionX, 0, cornerSize, cornerSize);
+            Rectangle middleLeft = new Rectangle(0, cornerSize, cornerSize, sideLengthY);
+            Rectangle center = new Rectangle(cornerSize, cornerSize, sideLengthX, sideLengthY);
+            Rectangle middleRight = new Rectangle(sidePositionX, cornerSize, cornerSize, sideLengthY);
+            Rectangle bottomLeft = new Rectangle(0, sidePositionY, cornerSize, cornerSize);
+            Rectangle bottomMiddle = new Rectangle(cornerSize, sidePositionY, sideLengthX, cornerSize);
+            Rectangle bottomRight = new Rectangle(sidePositionX, sidePositionY, cornerSize, cornerSize);
+            float drawScale = 1f;
+
+            spriteBatch.Draw(texture, position + new Vector2(-padding.X, -padding.Y), topLeft, color, default, default, drawScale, SpriteEffects.None, 0f);
+            for (int i = 0; i < (dimensions.X - topLeft.Width - topRight.Width + padding.X * 2) / topMiddle.Width; i++)
+            {
+                spriteBatch.Draw(texture, position + new Vector2(-padding.X + topLeft.Width + i * topMiddle.Width, -padding.Y), i > (dimensions.X - topLeft.Width - topRight.Width + padding.X * 2) / topMiddle.Width - 1 ? new Rectangle(topMiddle.X, topMiddle.Y, (int)(dimensions.X - topLeft.Width - topRight.Width + padding.X * 2) % topMiddle.Width, topMiddle.Height) : topMiddle, color, default, default, drawScale, SpriteEffects.None, 0f);
+            }
+            spriteBatch.Draw(texture, position + new Vector2(dimensions.X - topRight.Width + padding.X, -padding.Y), topRight, color, default, default, drawScale, SpriteEffects.None, 0f);
+
+            for (int i = 0; i < (dimensions.Y - topLeft.Height - bottomLeft.Height + padding.Y * 2) / center.Height; i++)
+            {
+                spriteBatch.Draw(texture, position + new Vector2(-padding.X, -padding.Y + topLeft.Height + i * middleLeft.Height), i > (dimensions.Y - topLeft.Height - bottomLeft.Height + padding.Y * 2) / center.Height - 1 ? new Rectangle(middleLeft.X, middleLeft.Y, middleLeft.Width, (int)(dimensions.Y - topLeft.Height - bottomLeft.Height + padding.Y * 2) % middleLeft.Height) : middleLeft, color, default, default, drawScale, SpriteEffects.None, 0f);
+            }
+            for (int i = 0; i < (dimensions.X - middleLeft.Width - middleRight.Width + padding.X * 2) / center.Width; i++)
+            {
+                for (int j = 0; j < (dimensions.Y - topMiddle.Height - bottomMiddle.Height + padding.Y * 2) / center.Height; j++)
+                {
+                    spriteBatch.Draw(texture, position + new Vector2(-padding.X + middleLeft.Width + i * center.Width, -padding.Y + topMiddle.Height + j * center.Height), new Rectangle(center.X, center.Y, i > (dimensions.X - middleLeft.Width - middleRight.Width + padding.X * 2) / center.Width - 1 ? (int)(dimensions.X - middleLeft.Width - middleRight.Width + padding.X * 2) % center.Width : center.Width, j > (dimensions.Y - topMiddle.Height - bottomMiddle.Height + padding.Y * 2) / center.Height - 1 ? (int)(dimensions.Y - topMiddle.Height - bottomMiddle.Height + padding.Y * 2) % center.Height : center.Height), color, default, default, drawScale, SpriteEffects.None, 0f);
+                }
+            }
+            for (int i = 0; i < (dimensions.Y - topRight.Height - bottomRight.Height + padding.Y * 2) / center.Height; i++)
+            {
+                spriteBatch.Draw(texture, position + new Vector2(dimensions.X - middleLeft.Width + padding.X, -padding.Y + topRight.Height + i * middleRight.Height), i > (dimensions.Y - topRight.Height - topRight.Height + padding.Y * 2) / center.Height - 1 ? new Rectangle(middleRight.X, middleRight.Y, middleRight.Width, (int)(dimensions.Y - topRight.Height - bottomRight.Height + padding.Y * 2) % middleRight.Height) : middleRight, color, default, default, drawScale, SpriteEffects.None, 0f);
+            }
+
+            spriteBatch.Draw(texture, position + new Vector2(-padding.X, dimensions.Y - bottomRight.Height + padding.Y), bottomLeft, color, default, default, drawScale, SpriteEffects.None, 0f);
+            for (int i = 0; i < (dimensions.X - bottomLeft.Width - bottomRight.Width + padding.X * 2) / bottomMiddle.Width; i++)
+            {
+                spriteBatch.Draw(texture, position + new Vector2(-padding.X + bottomLeft.Width + i * bottomMiddle.Width, dimensions.Y - bottomRight.Height + padding.Y), i > (dimensions.X - bottomLeft.Width - bottomRight.Width + padding.X * 2) / bottomMiddle.Width - 1 ? new Rectangle(bottomMiddle.X, bottomMiddle.Y, (int)(dimensions.X - bottomLeft.Width - bottomRight.Width + padding.X * 2) % bottomMiddle.Width, bottomMiddle.Height) : bottomMiddle, color, default, default, drawScale, SpriteEffects.None, 0f);
+            }
+            spriteBatch.Draw(texture, position + new Vector2(dimensions.X - bottomRight.Width + padding.X, dimensions.Y - bottomRight.Height + padding.Y), bottomRight, color, default, default, drawScale, SpriteEffects.None, 0f);
+        }
     }
 
     public class TerrariaFortress : Mod
     {
+        public static TerrariaFortress mod => ModContent.GetInstance<TerrariaFortress>();
+        public static Texture2D oldLogo1;
+        public static Texture2D oldLogo2;
+        public SoundEffect cachedTickSound;
+        public SoundEffect cachedOpenedSound;
+        public SoundEffect cachedClosedSound;
+
         public override void Load()
         {
             TFUtils.downloads = TFUtils.GetDownloadCount();
+            oldLogo1 = Main.logoTexture;
+            oldLogo2 = Main.logo2Texture;
+            cachedTickSound = Main.soundMenuTick;
+            cachedOpenedSound = Main.soundMenuOpen;
+            cachedClosedSound = Main.soundMenuClose;
+
             On.Terraria.Main.DrawMenu += Main_DrawMenu;
+
+            Main.logoTexture = TFUtils.UITextures.Logo;
+            Main.logo2Texture = TFUtils.UITextures.Logo;
+            Main.soundMenuTick = GetSound("Sounds/Custom/UIHover1");
+            Main.soundMenuOpen = GetSound("Sounds/Custom/UIClickFull1");
+            Main.soundMenuClose = GetSound("Sounds/Custom/UIClickFull1");
         }
 
-        internal static string changeLogsString;
-        internal static string changeLogsStringMessage;
+        public override void Unload()
+        {
+            Main.logoTexture = oldLogo1;
+            Main.logo2Texture = oldLogo2;
+            Main.soundMenuTick = cachedTickSound;
+            Main.soundMenuOpen = cachedOpenedSound;
+            Main.soundMenuClose = cachedClosedSound;
+        }
+
+        internal static string changelogsString;
+        internal static string changelogsStringMessage;
         internal static bool changelogsOpened;
-        internal static Rectangle logsBox;
+        internal static bool changelogsHovering;
+        internal static Rectangle changelogsBox;
         internal static Color hoverColor;
         private void Main_DrawMenu(On.Terraria.Main.orig_DrawMenu orig, Main self, GameTime gameTime)
         {
-            if (!changelogsOpened)
+            if (Main.gameMenu)
             {
-                changeLogsString = "Open Terraria Fortress Changelogs";
-                changeLogsStringMessage = "";
-
-            }
-            else
-            {
-                changeLogsString = "Close Terraria Fortress Changelogs";
-                changeLogsStringMessage = "v0.5 - What Valve Couldn't Promise"
-+ "\n- Brought back everyone's favorite Soviet giant for the mod icon"
- + "\n- Bug fixes and changes, specificaly:"
-                + "\n* Cleaned up tons of inconsistencies in code"
-               + "\n* Minor visual tweaks all around, i.e.afterburn flames looking more like fire and renaming \"Mann Co. Ammo Box\" to \n\"Mann Co. Medium Ammo Crate\" and updating its sprite"
-  + "\n*A lot of visual changes, including:"
-      + "\n* The player's hand not rotating to the cursor for weapon holdouts"
-     + "\n* The actual sprite not rotating / acting weird with muzzle flashes"
-      + "\n* Sprite repositioning for a lot of holdouts"
-     + "\n* Fixed inconsistencies in the holdouts for melees"
-     + "\n* The Flame Thrower's small blue flame at the end now emits actual light "
-+ "\nand flame dust which reacts to motion / airblast"
-     + "\n* The names of TF items are now in all caps, just like in TF2"
- + "\n* Fixing inconsistencies with weapons, including:\n"
-
-     + "\n* Fixed the Flame Thrower firing without consuming ammo at times"
-     + "\n* A lot of tweaks to airblast, should no longer fire in uncertain directions, extinguish allies properly, and push enemies at a reasonable force"
-     + "\n* Grenade Launcher pills no longer make nonstop impact noises"
-     + "\n* Stickybomb Launcher stickies will now stack damage, so that you can't survive mass explosions and traverse the skies"
- + "\n* Ignited enemies will now play a burning fwoosh sound upon ignition(Flame Thrower)\n"
-
-+ "\n- Reached 8000 + downloads! Thank you so much for your non-stop support!"
- + "\n- Added Heavy's Minigun, which can rev up and down with right click as well, and stay revved"
- + "\n- Added Heavy's Fists, whose hand's skin color change to your player's while in the inventory"
- + "\n- Added the very infamous random crits! Mini - crits were also added, but are currently unused.\nBuild damage overtime to reach your minimum of 2 % to 12 % to land a random critical hit when using weapons.\nYour stored chance deteriorates overtime.";
-
-                ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch, Main.fontDeathText, changeLogsStringMessage, new Vector2(10, 25), Color.White, 0f, Vector2.Zero, new Vector2(0.25f, 0.25f));
-            }
-
-            Vector2 letsFuckingMeasure = Main.fontDeathText.MeasureString(changeLogsString);
-
-            float x = (int)letsFuckingMeasure.X * 0.25f;
-            float y = (int)letsFuckingMeasure.Y * 0.25f;
-            logsBox = new Rectangle(10, 10, (int)x, (int)y);
-
-            if (logsBox.Contains(Main.MouseScreen.ToPoint()))
-            {
-                hoverColor = Color.Yellow;
-
-                if (TFUtils.CanDetectClick(true))
+                if (Main.menuMode == 0 || Main.menuMode == -5)
                 {
-                    changelogsOpened = !changelogsOpened;
-                    Main.PlaySound(!changelogsOpened ? SoundID.MenuClose : SoundID.MenuOpen);
+                    Vector2 changelogsPosition = new Vector2(30f, 90f);
+                    Vector2 changelogsScale = new Vector2(0.35f, 0.35f);
+                    DynamicSpriteFont changelogsFont = Main.fontDeathText;
+                    SpriteBatch spriteBatch = Main.spriteBatch;
+                    Vector2 letsFuckingMeasure;
+                    changelogsString = "Currently at " + TFUtils.DownloadCountFormatted() + " downloads.\n";
+
+                    if (changelogsBox.Contains(Main.MouseScreen.ToPoint()))
+                    {
+                        if (TFUtils.CanDetectClick(true))
+                        {
+                            Main.menuMode = changelogsOpened ? 0 : -5;
+                        }
+                    }
+
+                    if (!changelogsOpened)
+                    {
+                        Main.logoTexture = TFUtils.UITextures.Logo;
+                        Main.logo2Texture = TFUtils.UITextures.Logo;
+                        changelogsString += "Open Terraria Fortress Changelogs";
+                        changelogsStringMessage = "";
+
+                    }
+                    else
+                    {
+                        Main.logoTexture = GetTexture("Extras/FUCK");
+                        Main.logo2Texture = GetTexture("Extras/FUCK");
+                        changelogsString += "Close Terraria Fortress Changelogs";
+                        #region The Actual Fucking Log
+                        changelogsStringMessage =
+"v0.5 - What Valve Couldn't Promise"
++ "\n- Brought back everyone's favorite Soviet giant for the mod icon"
++ "\n- Added this changelog, replaced the main menu logo with the TF logo,"
++ "\nand changed UI sounds to match TF2's. Thanks to Stevie / Ryan for those changes' code"
++ "\n- Bug fixes and changes, specifically:"
++ "\n   * Cleaned up tons of inconsistencies in code"
++ "\n   * Minor visual tweaks all around, i.e. afterburn flames looking more like fire and renaming \"Mann Co. Ammo Box\" to \n\"Mann Co. Medium Ammo Crate\" and updating its sprite"
++ "\n   * A lot of visual changes, including:"
++ "\n       * The player's hand not rotating to the cursor for weapon holdouts"
++ "\n       * The actual sprite not rotating / acting weird with muzzle flashes"
++ "\n       * Sprite repositioning for a lot of holdouts"
++ "\n       * Fixed inconsistencies in the holdouts for melees"
++ "\n       * The Flame Thrower's small blue flame at the end now emits actual light "
++ "\n   and flame dust which reacts to motion / airblast"
++ "\n       * The names of TF items are now in all caps, just like in TF2"
++ "\n   * Fixing inconsistencies with weapons, including:"
++ "\n       * Fixed the Flame Thrower firing without consuming ammo at times"
++ "\n       * A lot of tweaks to airblast, should no longer fire in uncertain directions, extinguish allies properly, and push enemies at a reasonable force"
++ "\n       * Grenade Launcher pills no longer make nonstop impact noises"
++ "\n       * Stickybomb Launcher stickies will now stack damage, so that you can't survive mass explosions and traverse the skies"
++ "\n       * Ignited enemies will now play a burning fwoosh sound upon ignition (Flame Thrower)\n"
+
++ "\n- Reached 8000+ downloads! Thank you so much for your non-stop support!"
++ "\n- Added Heavy's Minigun, which can rev up and down with right click as well, and stay revved"
++ "\n- Added Heavy's Fists, whose hand's skin color change to your player's while in the inventory"
++ "\n- Added the very infamous random crits! Mini-crits were also added, but are currently unused.\nBuild damage overtime to reach your minimum of 2% to 12% to land a random critical hit when using weapons.\nYour stored chance deteriorates overtime."
++ "\n- Added the Electrocritiogram, a device sold by the Arms Dealer which lets you view your chance to land a random crit"
++ "\n- The mod's download count now updates live each time you load it up"
++ "\n- Added a few Mod Config options to the settings menu:"
++ "\n    * Melee weapon holdout rotation can be toggled"
++ "\n    * Ranged weapon holdout rotation can be toggled"
++ "\n    * Random crits can be toggled; if enabled, you can deal and suffer random crits; if disabled, you can't deal nor suffer random crits";
+                        #endregion
+                        letsFuckingMeasure = changelogsFont.MeasureString(changelogsStringMessage) * changelogsScale;
+                        TFUtils.DrawBackground(TFUtils.UITextures.Beige, new Vector2((int)changelogsPosition.X, (int)changelogsPosition.Y), new Vector2((int)(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width - changelogsPosition.X * 2), (int)letsFuckingMeasure.Y), new Vector2(18f, 0f), Color.White);
+                        ChatManager.DrawColorCodedStringWithShadow(spriteBatch, changelogsFont, changelogsStringMessage, changelogsPosition, TFColor[(int)TFColorID.Strange], 0f, new Vector2(0f, 0f), changelogsScale);
+                    }
+
+                    letsFuckingMeasure = changelogsFont.MeasureString(changelogsString);
+                    Vector2 logsBoxDimensions = letsFuckingMeasure * changelogsScale;
+                    changelogsBox = new Rectangle((int)changelogsPosition.X, 16, (int)logsBoxDimensions.X, (int)logsBoxDimensions.Y);
+
+                    if (changelogsBox.Contains(Main.MouseScreen.ToPoint()))
+                    {
+                        hoverColor = TFColor[(int)TFColorID.CombatMiniCrit];
+
+                        if (!changelogsHovering)
+                        {
+                            changelogsHovering = true;
+                            Main.PlaySound(mod.GetLegacySoundSlot(SoundType.Custom, "Sounds/Custom/UIHover1"));
+                        }
+                        if (TFUtils.CanDetectClick(true))
+                        {
+                            changelogsOpened = !changelogsOpened;
+                            Main.PlaySound(mod.GetLegacySoundSlot(SoundType.Custom, "Sounds/Custom/UIClickFull1"));
+                        }
+                    }
+                    else
+                    {
+                        changelogsHovering = false;
+                        hoverColor = TFColor[(int)TFColorID.Strange];
+                    }
+
+                    letsFuckingMeasure = changelogsFont.MeasureString(changelogsString) * changelogsScale;
+                    TFUtils.DrawBackground(TFUtils.UITextures.Tooltip, new Vector2((int)changelogsPosition.X, changelogsBox.Y), new Vector2((int)letsFuckingMeasure.X, (int)letsFuckingMeasure.Y - 4), new Vector2(18f, 6f), changelogsHovering ? Color.White : new Color(255, 110, 110));
+                    ChatManager.DrawColorCodedStringWithShadow(spriteBatch, changelogsFont, changelogsString, new Vector2(changelogsPosition.X, changelogsBox.Y), hoverColor, 0f, Vector2.Zero, changelogsScale);
                 }
-            }
-            else
-            {
-                hoverColor = Color.White;
-            }
 
-            ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch, Main.fontDeathText, changeLogsString, new Vector2(10, 10), hoverColor, 0f, Vector2.Zero, new Vector2(0.25f, 0.25f));
-
-            orig(self, gameTime);
+                orig(self, gameTime);
+            }
         }
 
         public static readonly Color[] TFColor =

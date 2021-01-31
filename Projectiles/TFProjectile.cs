@@ -393,7 +393,8 @@ namespace TerrariaFortress.Projectiles
                                     {
                                         velocity = Vector2.Normalize(reflectedProjectile.Center - player.MountedCenter);
                                     }
-                                    reflectedProjectile.velocity = velocity * reflectedProjectile.velocity.Length();
+                                    float minSpeed = projectile.velocity.Length();
+                                    reflectedProjectile.velocity = velocity * (reflectedProjectile.velocity.Length() < minSpeed ? minSpeed : reflectedProjectile.velocity.Length());
 
                                     if (reflectedProjectile.modProjectile is TFProjectile TFProjectile)
                                     {
@@ -420,7 +421,7 @@ namespace TerrariaFortress.Projectiles
                     }
                 }
                 #endregion
-                
+
                 #region Push
                 for (int i = 0; i < Main.maxPlayers; i++)
                 {

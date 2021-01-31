@@ -16,7 +16,7 @@ namespace TerrariaFortress.Projectiles
 		public override void SetStaticDefaults()
         {
 			DisplayName.SetDefault("Flames");
-			ProjectileID.Sets.TrailCacheLength[projectile.type] = 5;
+			ProjectileID.Sets.TrailCacheLength[projectile.type] = 10;
 			ProjectileID.Sets.TrailingMode[projectile.type] = 2;
 		}
 
@@ -35,7 +35,7 @@ namespace TerrariaFortress.Projectiles
         }
 
 		public override void TFAI()
-        {
+		{
 			projectile.rotation = projectile.velocity.ToRotation();
 			Player player = Main.player[projectile.owner];
 

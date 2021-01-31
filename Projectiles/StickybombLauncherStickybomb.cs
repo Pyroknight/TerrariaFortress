@@ -166,8 +166,14 @@ namespace TerrariaFortress.Projectiles
 				tileCollisionSoundCheck = true;
             }
         }
+        public override void CritEffects()
+        {
+            Dust dust1 = Dust.NewDustPerfect(projectile.Center, 182, projectile.velocity * 0.25f, 0, default, 1f);
+            dust1.noGravity = true;
+            base.CritEffects();
+        }
 
-		public override bool CanDamage()
+        public override bool CanDamage()
         {
 			return false;
         }

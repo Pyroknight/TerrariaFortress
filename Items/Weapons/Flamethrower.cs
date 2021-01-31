@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using TerrariaFortress.Dusts;
 using TerrariaFortress.Projectiles;
@@ -164,7 +165,7 @@ namespace TerrariaFortress.Items.Weapons
                             {
                                 if (!startSoundCheck)
                                 {
-                                    startSoundCheck = true;
+                                    startSoundCheck = true; 
                                 }
                                 endSoundCheck = false;
                             }
@@ -177,12 +178,15 @@ namespace TerrariaFortress.Items.Weapons
                     Vector2 toMouse = Vector2.Normalize(Main.MouseWorld - player.MountedCenter);
 
                     Point point = blueFlamePosition.ToTileCoordinates();
-                    if (!WorldGen.SolidOrSlopedTile(point.X, point.Y) && !Collision.WetCollision(blueFlamePosition, 0, 0))
+                    if (Collision.CanHitLine(player.MountedCenter, 0, 0, blueFlamePosition, 0, 0))
                     {
-                        Lighting.AddLight(blueFlamePosition, blueFlameColor / 255f * brightness);
-                        Dust dust1 = Dust.NewDustPerfect(blueFlamePosition, Terraria.ID.DustID.Electric, new Vector2(0f, -0.6f) + (player.altFunctionUse == 2 && TFUtils.InRange(player.itemAnimation, player.itemAnimationMax - 10f, player.itemAnimationMax) ? toMouse * 12f : new Vector2(0f, 0f)), 100, default, player.controlUseItem ? 0.2f : 0.5f);
-                        dust1.noGravity = true;
-                        dust1.noLight = true;
+                        if (!WorldGen.SolidOrSlopedTile(point.X, point.Y) && !Collision.WetCollision(blueFlamePosition, 0, 0))
+                        {
+                            Lighting.AddLight(blueFlamePosition, blueFlameColor / 255f * brightness);
+                            Dust dust1 = Dust.NewDustPerfect(blueFlamePosition, DustID.Electric, new Vector2(0f, -0.6f) + (player.altFunctionUse == 2 && TFUtils.InRange(player.itemAnimation, player.itemAnimationMax - 10f, player.itemAnimationMax) ? toMouse * 12f : new Vector2(0f, 0f)), 100, default, player.controlUseItem && CanUseItem(player) && player.CountItem(item.useAmmo, 1) >= 1 ? 0.2f : 0.5f);
+                            dust1.noGravity = true;
+                            dust1.noLight = true;
+                        }
                     }
                 }
                 else

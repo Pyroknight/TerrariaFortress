@@ -9,8 +9,6 @@ All of it revolves around the hit shooter Team Fortress 2 by Valve Corporation.
 
 CURRENTLY FEATURES:
 
-
-
 * Sold by Demolitionist, post-Skeletron:
 	-Scattergun
 	-Pistol
@@ -48,11 +46,13 @@ Magnolia (head spriter)
 Leaper (head spriter, item presentation panels)
 RighteousRyan (head coder, GitHub assistance)
 
+Stevie (main menu changelog code help)
+
 Snek (bug reporting duty, additional contributions / code)
 
 Webmilio (supporting with gifted Discord Nitro, additional contributions / GitHub assistance)
 
-TModLoader (lots of help, and making this possible)
+tModLoader (lots of help, and making this possible)
 
 Re-Logic (making a game as sick as Terraria, and making this possible)
 

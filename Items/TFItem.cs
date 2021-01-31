@@ -798,8 +798,7 @@ namespace TerrariaFortress.Items
             Rectangle bottomLeft = new Rectangle(0, 36, 16, 16);
             Rectangle bottomMiddle = new Rectangle(16, 36, 20, 16);
             Rectangle bottomRight = new Rectangle(36, 36, 16, 16);
-            float horizontalPadding = 18f;
-            float verticalPadding = 6f;
+            Vector2 padding = new Vector2(18f, 6f);
 
             string longestLine = "";
             foreach (TooltipLine tooltipLine in lines)
@@ -811,11 +810,9 @@ namespace TerrariaFortress.Items
             }
             Vector2 tooltipDimensions = tooltip.MeasureString(longestLine);
             longestTooltipLine = longestLine;
+            foreach (TooltipLine line in lines)
             {
-                foreach (TooltipLine line in lines)
-                {
-                    tooltipHeight += tooltip.MeasureString(line.text).Y;
-                }
+                tooltipHeight += tooltip.MeasureString(line.text).Y;
             }
             Texture2D texture = ModContent.GetTexture("TerrariaFortress/Items/TFItemTooltipUI");
             Color drawColor = Color.White;
@@ -826,71 +823,71 @@ namespace TerrariaFortress.Items
             {
                 case true:
                     #region Normal UI Drawing
-                    spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding, -verticalPadding), topLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
-                    for (int i = 0; i < (tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) / topMiddle.Width; i++)
+                    spriteBatch.Draw(texture, drawPos + new Vector2(-padding.X, -padding.Y), topLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    for (int i = 0; i < (tooltipDimensions.X - topLeft.Width - topRight.Width + padding.X * 2) / topMiddle.Width; i++)
                     {
-                        spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + topLeft.Width + i * topMiddle.Width, -verticalPadding), i > (tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) / topMiddle.Width - 1 ? new Rectangle(topMiddle.X, topMiddle.Y, (int)(tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) % topMiddle.Width, topMiddle.Height) : topMiddle, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                        spriteBatch.Draw(texture, drawPos + new Vector2(-padding.X + topLeft.Width + i * topMiddle.Width, -padding.Y), i > (tooltipDimensions.X - topLeft.Width - topRight.Width + padding.X * 2) / topMiddle.Width - 1 ? new Rectangle(topMiddle.X, topMiddle.Y, (int)(tooltipDimensions.X - topLeft.Width - topRight.Width + padding.X * 2) % topMiddle.Width, topMiddle.Height) : topMiddle, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
                     }
-                    spriteBatch.Draw(texture, drawPos + new Vector2(tooltipDimensions.X - topRight.Width + horizontalPadding, -verticalPadding), topRight, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    spriteBatch.Draw(texture, drawPos + new Vector2(tooltipDimensions.X - topRight.Width + padding.X, -padding.Y), topRight, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
 
-                    for (int i = 0; i < (tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) / center.Height; i++)
+                    for (int i = 0; i < (tooltipHeight - topLeft.Height - bottomLeft.Height + padding.Y * 2) / center.Height; i++)
                     {
-                        spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding, -verticalPadding + topLeft.Height + i * middleLeft.Height), i > (tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) / center.Height - 1 ? new Rectangle(middleLeft.X, middleLeft.Y, middleLeft.Width, (int)(tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) % middleLeft.Height) : middleLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                        spriteBatch.Draw(texture, drawPos + new Vector2(-padding.X, -padding.Y + topLeft.Height + i * middleLeft.Height), i > (tooltipHeight - topLeft.Height - bottomLeft.Height + padding.Y * 2) / center.Height - 1 ? new Rectangle(middleLeft.X, middleLeft.Y, middleLeft.Width, (int)(tooltipHeight - topLeft.Height - bottomLeft.Height + padding.Y * 2) % middleLeft.Height) : middleLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
                     }
-                    for (int i = 0; i < (tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) / center.Width; i++)
+                    for (int i = 0; i < (tooltipDimensions.X - middleLeft.Width - middleRight.Width + padding.X * 2) / center.Width; i++)
                     {
-                        for (int j = 0; j < (tooltipHeight - topMiddle.Height - bottomMiddle.Height + verticalPadding * 2) / center.Height; j++)
+                        for (int j = 0; j < (tooltipHeight - topMiddle.Height - bottomMiddle.Height + padding.Y * 2) / center.Height; j++)
                         {
-                            spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + middleLeft.Width + i * center.Width, -verticalPadding + topMiddle.Height + j * center.Height), new Rectangle(center.X, center.Y, i > (tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) / center.Width - 1 ? (int)(tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) % center.Width : center.Width, j > (tooltipHeight - topMiddle.Height - bottomMiddle.Height + verticalPadding * 2) / center.Height - 1 ? (int)(tooltipHeight - topMiddle.Height - bottomMiddle.Height + verticalPadding * 2) % center.Height : center.Height), drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                            spriteBatch.Draw(texture, drawPos + new Vector2(-padding.X + middleLeft.Width + i * center.Width, -padding.Y + topMiddle.Height + j * center.Height), new Rectangle(center.X, center.Y, i > (tooltipDimensions.X - middleLeft.Width - middleRight.Width + padding.X * 2) / center.Width - 1 ? (int)(tooltipDimensions.X - middleLeft.Width - middleRight.Width + padding.X * 2) % center.Width : center.Width, j > (tooltipHeight - topMiddle.Height - bottomMiddle.Height + padding.Y * 2) / center.Height - 1 ? (int)(tooltipHeight - topMiddle.Height - bottomMiddle.Height + padding.Y * 2) % center.Height : center.Height), drawColor, default, default, drawScale, SpriteEffects.None, 0f);
                         }
                     }
-                    for (int i = 0; i < (tooltipHeight - topRight.Height - bottomRight.Height + verticalPadding * 2) / center.Height; i++)
+                    for (int i = 0; i < (tooltipHeight - topRight.Height - bottomRight.Height + padding.Y * 2) / center.Height; i++)
                     {
-                        spriteBatch.Draw(texture, drawPos + new Vector2(tooltipDimensions.X - middleLeft.Width + horizontalPadding, -verticalPadding + topRight.Height + i * middleRight.Height), i > (tooltipHeight - topRight.Height - topRight.Height + verticalPadding * 2) / center.Height - 1 ? new Rectangle(middleRight.X, middleRight.Y, middleRight.Width, (int)(tooltipHeight - topRight.Height - bottomRight.Height + verticalPadding * 2) % middleRight.Height) : middleRight, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                        spriteBatch.Draw(texture, drawPos + new Vector2(tooltipDimensions.X - middleLeft.Width + padding.X, -padding.Y + topRight.Height + i * middleRight.Height), i > (tooltipHeight - topRight.Height - topRight.Height + padding.Y * 2) / center.Height - 1 ? new Rectangle(middleRight.X, middleRight.Y, middleRight.Width, (int)(tooltipHeight - topRight.Height - bottomRight.Height + padding.Y * 2) % middleRight.Height) : middleRight, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
                     }
 
-                    spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding, tooltipHeight - bottomRight.Height + verticalPadding), bottomLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
-                    for (int i = 0; i < (tooltipDimensions.X - bottomLeft.Width - bottomRight.Width + horizontalPadding * 2) / bottomMiddle.Width; i++)
+                    spriteBatch.Draw(texture, drawPos + new Vector2(-padding.X, tooltipHeight - bottomRight.Height + padding.Y), bottomLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    for (int i = 0; i < (tooltipDimensions.X - bottomLeft.Width - bottomRight.Width + padding.X * 2) / bottomMiddle.Width; i++)
                     {
-                        spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + bottomLeft.Width + i * bottomMiddle.Width, tooltipHeight - bottomRight.Height + verticalPadding), i > (tooltipDimensions.X - bottomLeft.Width - bottomRight.Width + horizontalPadding * 2) / bottomMiddle.Width - 1 ? new Rectangle(bottomMiddle.X, bottomMiddle.Y, (int)(tooltipDimensions.X - bottomLeft.Width - bottomRight.Width + horizontalPadding * 2) % bottomMiddle.Width, bottomMiddle.Height) : bottomMiddle, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                        spriteBatch.Draw(texture, drawPos + new Vector2(-padding.X + bottomLeft.Width + i * bottomMiddle.Width, tooltipHeight - bottomRight.Height + padding.Y), i > (tooltipDimensions.X - bottomLeft.Width - bottomRight.Width + padding.X * 2) / bottomMiddle.Width - 1 ? new Rectangle(bottomMiddle.X, bottomMiddle.Y, (int)(tooltipDimensions.X - bottomLeft.Width - bottomRight.Width + padding.X * 2) % bottomMiddle.Width, bottomMiddle.Height) : bottomMiddle, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
                     }
-                    spriteBatch.Draw(texture, drawPos + new Vector2(tooltipDimensions.X - bottomRight.Width + horizontalPadding, tooltipHeight - bottomRight.Height + verticalPadding), bottomRight, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    spriteBatch.Draw(texture, drawPos + new Vector2(tooltipDimensions.X - bottomRight.Width + padding.X, tooltipHeight - bottomRight.Height + padding.Y), bottomRight, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
                     #endregion
                     break;
                 case false:
                     #region Proper UI Drawing
-                    spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding, -verticalPadding), topLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
-                    for (int i = 0; i < (tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) / topMiddle.Width; i++)
-                    {
-                        spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + topLeft.Width + i * topMiddle.Width, -verticalPadding), i > (tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) / topMiddle.Width - 1 ? new Rectangle(topMiddle.X, topMiddle.Y, (int)(tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) % topMiddle.Width, topMiddle.Height) : topMiddle, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
-                        if (i > (tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) / topMiddle.Width - 1)
-                        {
-                            spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + topLeft.Width + i * topMiddle.Width + ((int)(tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) % topMiddle.Width), -verticalPadding), topRight, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
-                        }
-                    }
+                    //spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding, -verticalPadding), topLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    //for (int i = 0; i < (tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) / topMiddle.Width; i++)
+                    //{
+                    //    spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + topLeft.Width + i * topMiddle.Width, -verticalPadding), i > (tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) / topMiddle.Width - 1 ? new Rectangle(topMiddle.X, topMiddle.Y, (int)(tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) % topMiddle.Width, topMiddle.Height) : topMiddle, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    //    if (i > (tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) / topMiddle.Width - 1)
+                    //    {
+                    //        spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + topLeft.Width + i * topMiddle.Width + ((int)(tooltipDimensions.X - topLeft.Width - topRight.Width + horizontalPadding * 2) % topMiddle.Width), -verticalPadding), topRight, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    //    }
+                    //}
 
-                    for (int i = 0; i < (tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) / center.Height; i++)
-                    {
-                        spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding, -verticalPadding + topLeft.Height + i * middleLeft.Height), i > (tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) / center.Height - 1 ? new Rectangle(middleLeft.X, middleLeft.Y, middleLeft.Width, (int)(tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) % middleLeft.Height) : middleLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
-                        if (i > (tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) / center.Height - 1)
-                        {
-                            spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding, -verticalPadding + topLeft.Height + i * middleLeft.Height + ((int)(tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) % middleLeft.Height)), bottomLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
-                        }
-                    }
-                    for (int i = 0; i < (tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) / center.Width; i++)
-                    {
-                        for (int j = 0; j < (tooltipHeight - topMiddle.Height - bottomMiddle.Height + verticalPadding * 2) / center.Height; j++)
-                        {
-                            spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + middleLeft.Width + i * center.Width, -verticalPadding + topMiddle.Height + j * center.Height), new Rectangle(center.X, center.Y, i > (tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) / center.Width - 1 ? (int)(tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) % center.Width : center.Width, j > (tooltipHeight - topMiddle.Height - bottomMiddle.Height + verticalPadding * 2) / center.Height - 1 ? (int)(tooltipHeight - topMiddle.Height - bottomMiddle.Height + verticalPadding * 2) % center.Height : center.Height), drawColor, default, default, drawScale, SpriteEffects.None, 0f);
-                        }
-                        for (int k = 0; k < (tooltipHeight - topRight.Height - bottomRight.Height + verticalPadding * 2) / center.Height; k++)
-                        {
-                            if (i > (tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) / center.Width - 1)
-                            {
-                                spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + middleLeft.Width + i * center.Width + ((int)(tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) % center.Width), -verticalPadding + topRight.Height + k * middleRight.Height), new Rectangle(middleRight.X, middleRight.Y, middleRight.Width, k > (tooltipHeight - topRight.Height - bottomRight.Height + verticalPadding * 2) / center.Height - 1 ? (int)(tooltipHeight - topRight.Height - bottomRight.Height + verticalPadding * 2) % middleRight.Height : middleRight.Height), drawColor, default, default, drawScale, SpriteEffects.None, 0f);
-                            }
-                        }
-                    }
+                    //for (int i = 0; i < (tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) / center.Height; i++)
+                    //{
+                    //    spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding, -verticalPadding + topLeft.Height + i * middleLeft.Height), i > (tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) / center.Height - 1 ? new Rectangle(middleLeft.X, middleLeft.Y, middleLeft.Width, (int)(tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) % middleLeft.Height) : middleLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    //    if (i > (tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) / center.Height - 1)
+                    //    {
+                    //        spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding, -verticalPadding + topLeft.Height + i * middleLeft.Height + ((int)(tooltipHeight - topLeft.Height - bottomLeft.Height + verticalPadding * 2) % middleLeft.Height)), bottomLeft, drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    //    }
+                    //}
+                    //for (int i = 0; i < (tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) / center.Width; i++)
+                    //{
+                    //    for (int j = 0; j < (tooltipHeight - topMiddle.Height - bottomMiddle.Height + verticalPadding * 2) / center.Height; j++)
+                    //    {
+                    //        spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + middleLeft.Width + i * center.Width, -verticalPadding + topMiddle.Height + j * center.Height), new Rectangle(center.X, center.Y, i > (tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) / center.Width - 1 ? (int)(tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) % center.Width : center.Width, j > (tooltipHeight - topMiddle.Height - bottomMiddle.Height + verticalPadding * 2) / center.Height - 1 ? (int)(tooltipHeight - topMiddle.Height - bottomMiddle.Height + verticalPadding * 2) % center.Height : center.Height), drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    //    }
+                    //    for (int k = 0; k < (tooltipHeight - topRight.Height - bottomRight.Height + verticalPadding * 2) / center.Height; k++)
+                    //    {
+                    //        if (i > (tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) / center.Width - 1)
+                    //        {
+                    //            spriteBatch.Draw(texture, drawPos + new Vector2(-horizontalPadding + middleLeft.Width + i * center.Width + ((int)(tooltipDimensions.X - middleLeft.Width - middleRight.Width + horizontalPadding * 2) % center.Width), -verticalPadding + topRight.Height + k * middleRight.Height), new Rectangle(middleRight.X, middleRight.Y, middleRight.Width, k > (tooltipHeight - topRight.Height - bottomRight.Height + verticalPadding * 2) / center.Height - 1 ? (int)(tooltipHeight - topRight.Height - bottomRight.Height + verticalPadding * 2) % middleRight.Height : middleRight.Height), drawColor, default, default, drawScale, SpriteEffects.None, 0f);
+                    //        }
+                    //    }
+                    //}
 
                     //for (int i = 0; i < (tooltipDimensions.X - bottomLeft.Width - bottomRight.Width + horizontalPadding * 2) / bottomMiddle.Width; i++)
                     //{

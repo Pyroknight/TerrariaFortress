@@ -7,7 +7,6 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using TerrariaFortress.Dusts;
 using static TerrariaFortress.TerrariaFortress;
-using System.Net;
 
 namespace TerrariaFortress.Items
 {
@@ -32,7 +31,7 @@ namespace TerrariaFortress.Items
             item.useAnimation = 70;
             item.value = Item.buyPrice(0);
             item.autoReuse = true;
-            downloads = TFUtils.downloads.ToString();
+            downloads = TFUtils.DownloadCountFormatted();
         }
 
         public override void TFDescription(List<TooltipLine> tooltips)
