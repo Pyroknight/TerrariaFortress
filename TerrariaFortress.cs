@@ -32,10 +32,38 @@ namespace TerrariaFortress
         public struct UITextures
         {
             public static TerrariaFortress mod => ModContent.GetInstance<TerrariaFortress>();
-            public static Texture2D Beige = mod.GetTexture("Extras/UI1");
-            public static Texture2D Tooltip = mod.GetTexture("Items/TFItemTooltipUI");
-            public static Texture2D White = mod.GetTexture("Extras/UI2");
-            public static Texture2D Logo = mod.GetTexture("Extras/Logo");
+            public static Texture2D Beige;
+            public static Texture2D Tooltip;
+            public static Texture2D White;
+            public static Texture2D Logo;
+            public static Texture2D Empty;
+
+            public static void Load()
+            {
+                Beige = mod.GetTexture("Extras/UI1");
+                Tooltip = mod.GetTexture("Items/TFItemTooltipUI");
+                White = mod.GetTexture("Extras/UI2");
+                Logo = mod.GetTexture("Extras/Logo");
+                Empty = mod.GetTexture("Extras/FUCK");
+            }
+
+            public static void Unload()
+            {
+                Beige?.Dispose();
+                Beige = null;
+
+                Tooltip?.Dispose();
+                Tooltip = null;
+
+                White?.Dispose();
+                White = null;
+
+                Logo?.Dispose();
+                Logo = null;
+
+                Empty?.Dispose();
+                Empty = null;
+            }
         }
 
         /// <summary>
@@ -186,37 +214,47 @@ namespace TerrariaFortress
     public class TerrariaFortress : Mod
     {
         public static TerrariaFortress mod => ModContent.GetInstance<TerrariaFortress>();
-        public static Texture2D oldLogo1;
-        public static Texture2D oldLogo2;
         public SoundEffect cachedTickSound;
         public SoundEffect cachedOpenedSound;
         public SoundEffect cachedClosedSound;
 
         public override void Load()
         {
-            TFUtils.downloads = TFUtils.GetDownloadCount();
-            oldLogo1 = Main.logoTexture;
-            oldLogo2 = Main.logo2Texture;
-            cachedTickSound = Main.soundMenuTick;
-            cachedOpenedSound = Main.soundMenuOpen;
-            cachedClosedSound = Main.soundMenuClose;
+            if (!Main.dedServ)
+            {
+                TFUtils.downloads = TFUtils.GetDownloadCount();
+                cachedTickSound = Main.soundMenuTick;
+                cachedOpenedSound = Main.soundMenuOpen;
+                cachedClosedSound = Main.soundMenuClose;
 
-            On.Terraria.Main.DrawMenu += Main_DrawMenu;
+                TFUtils.UITextures.Load();
 
-            Main.logoTexture = TFUtils.UITextures.Logo;
-            Main.logo2Texture = TFUtils.UITextures.Logo;
-            Main.soundMenuTick = GetSound("Sounds/Custom/UIHover1");
-            Main.soundMenuOpen = GetSound("Sounds/Custom/UIClickFull1");
-            Main.soundMenuClose = GetSound("Sounds/Custom/UIClickFull1");
+                On.Terraria.Main.DrawMenu += Main_DrawMenu;
+
+                Main.soundMenuTick = GetSound("Sounds/Custom/UIHover1");
+                Main.soundInstanceMenuTick = Main.soundMenuTick.CreateInstance();
+                Main.soundMenuOpen = GetSound("Sounds/Custom/UIClickFull1");
+                Main.soundInstanceMenuOpen = Main.soundMenuOpen.CreateInstance();
+                Main.soundMenuClose = GetSound("Sounds/Custom/UIClickFull1");
+                Main.soundInstanceMenuClose = Main.soundMenuClose.CreateInstance();
+            }
         }
 
         public override void Unload()
         {
-            Main.logoTexture = oldLogo1;
-            Main.logo2Texture = oldLogo2;
-            Main.soundMenuTick = cachedTickSound;
-            Main.soundMenuOpen = cachedOpenedSound;
-            Main.soundMenuClose = cachedClosedSound;
+            if (!Main.dedServ)
+            {
+                Main.soundMenuTick = cachedTickSound;
+                Main.soundInstanceMenuTick = Main.soundMenuTick?.CreateInstance();
+                Main.soundMenuOpen = cachedOpenedSound;
+                Main.soundInstanceMenuOpen = Main.soundMenuOpen?.CreateInstance();
+                Main.soundMenuClose = cachedClosedSound;
+                Main.soundInstanceMenuClose = Main.soundMenuClose?.CreateInstance();
+
+                On.Terraria.Main.DrawMenu -= Main_DrawMenu;
+
+                TFUtils.UITextures.Unload();
+            }
         }
 
         internal static string changelogsString;
@@ -225,8 +263,12 @@ namespace TerrariaFortress
         internal static bool changelogsHovering;
         internal static Rectangle changelogsBox;
         internal static Color hoverColor;
+
         private void Main_DrawMenu(On.Terraria.Main.orig_DrawMenu orig, Main self, GameTime gameTime)
         {
+            Texture2D cachedLogo = Main.logoTexture;
+            Texture2D cachedLogo2 = Main.logo2Texture;
+
             if (Main.gameMenu)
             {
                 if (Main.menuMode == 0 || Main.menuMode == -5)
@@ -256,8 +298,8 @@ namespace TerrariaFortress
                     }
                     else
                     {
-                        Main.logoTexture = GetTexture("Extras/FUCK");
-                        Main.logo2Texture = GetTexture("Extras/FUCK");
+                        Main.logoTexture = TFUtils.UITextures.Empty;
+                        Main.logo2Texture = TFUtils.UITextures.Empty;
                         changelogsString += "Close Terraria Fortress Changelogs";
                         #region The Actual Fucking Log
                         changelogsStringMessage =
@@ -328,8 +370,22 @@ namespace TerrariaFortress
                     TFUtils.DrawBackground(TFUtils.UITextures.Tooltip, new Vector2((int)changelogsPosition.X, changelogsBox.Y), new Vector2((int)letsFuckingMeasure.X, (int)letsFuckingMeasure.Y - 4), new Vector2(18f, 6f), changelogsHovering ? Color.White : new Color(255, 110, 110));
                     ChatManager.DrawColorCodedStringWithShadow(spriteBatch, changelogsFont, changelogsString, new Vector2(changelogsPosition.X, changelogsBox.Y), hoverColor, 0f, Vector2.Zero, changelogsScale);
                 }
+            }
 
+            if (!changelogsOpened)
+            {
+                Main.logoTexture = TFUtils.UITextures.Logo;
+                Main.logo2Texture = TFUtils.UITextures.Logo;
+            }
+
+            try
+            {
                 orig(self, gameTime);
+            }
+            finally
+            {
+                Main.logoTexture = cachedLogo;
+                Main.logo2Texture = cachedLogo2;
             }
         }
 
