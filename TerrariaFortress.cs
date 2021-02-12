@@ -232,8 +232,11 @@ namespace TerrariaFortress
                 On.Terraria.Main.DrawMenu += Main_DrawMenu;
 
                 Main.soundMenuTick = GetSound("Sounds/Custom/UIHover1");
+                Main.soundInstanceMenuTick = Main.soundMenuTick.CreateInstance();
                 Main.soundMenuOpen = GetSound("Sounds/Custom/UIClickFull1");
+                Main.soundInstanceMenuOpen = Main.soundMenuOpen.CreateInstance();
                 Main.soundMenuClose = GetSound("Sounds/Custom/UIClickFull1");
+                Main.soundInstanceMenuClose = Main.soundMenuClose.CreateInstance();
             }
         }
 
@@ -242,15 +245,11 @@ namespace TerrariaFortress
             if (!Main.dedServ)
             {
                 Main.soundMenuTick = cachedTickSound;
+                Main.soundInstanceMenuTick = Main.soundMenuTick?.CreateInstance();
                 Main.soundMenuOpen = cachedOpenedSound;
+                Main.soundInstanceMenuOpen = Main.soundMenuOpen?.CreateInstance();
                 Main.soundMenuClose = cachedClosedSound;
-
-                cachedTickSound?.Dispose();
-                cachedTickSound = null;
-                cachedOpenedSound?.Dispose();
-                cachedOpenedSound = null;
-                cachedClosedSound?.Dispose();
-                cachedClosedSound = null;
+                Main.soundInstanceMenuClose = Main.soundMenuClose?.CreateInstance();
 
                 On.Terraria.Main.DrawMenu -= Main_DrawMenu;
 
@@ -373,24 +372,21 @@ namespace TerrariaFortress
                 }
             }
 
-			if (!changelogsOpened)
-			{
-				Main.logoTexture = TFUtils.UITextures.Logo;
-				Main.logo2Texture = TFUtils.UITextures.Logo;
-			}
+            if (!changelogsOpened)
+            {
+                Main.logoTexture = TFUtils.UITextures.Logo;
+                Main.logo2Texture = TFUtils.UITextures.Logo;
+            }
 
-			try
-			{
-				orig(self, gameTime);
-			}
-			finally
-			{
-				Main.logoTexture = cachedLogo;
-				Main.logo2Texture = cachedLogo2;
-
-                //cachedLogo.Dispose();
-                //cachedLogo2.Dispose();
-			}
+            try
+            {
+                orig(self, gameTime);
+            }
+            finally
+            {
+                Main.logoTexture = cachedLogo;
+                Main.logo2Texture = cachedLogo2;
+            }
         }
 
         public static readonly Color[] TFColor =
