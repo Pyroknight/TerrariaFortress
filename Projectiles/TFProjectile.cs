@@ -24,6 +24,7 @@ namespace TerrariaFortress.Projectiles
         public bool miniCritting = false;
         public float critDamageMultiplier = 3f;
         public bool randomCritting = false;
+        public bool heavyProjectile = false;
 
         /// <summary>
         /// Casts basic light.
@@ -377,7 +378,7 @@ namespace TerrariaFortress.Projectiles
                     {
                         if (reflectedProjectile.hostile && reflectedProjectile.active)
                         {
-                            if (!airblastReflectBlacklist.Contains(reflectedProjectile.type))
+                            if (!(reflectedProjectile.modProjectile is TFBuilding) && !airblastReflectBlacklist.Contains(reflectedProjectile.type))
                             {
                                 if (Collision.CanHitLine(player.MountedCenter, 0, 0, reflectedProjectile.Center, 0, 0))
                                 {

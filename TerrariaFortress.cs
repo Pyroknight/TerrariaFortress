@@ -1,4 +1,4 @@
-using Terraria.ModLoader;
+    using Terraria.ModLoader;
 using Terraria.ID;
 using TerrariaFortress.Projectiles;
 using Terraria;
@@ -32,10 +32,58 @@ namespace TerrariaFortress
         public struct UITextures
         {
             public static TerrariaFortress mod => ModContent.GetInstance<TerrariaFortress>();
-            public static Texture2D Beige = mod.GetTexture("Extras/UI1");
-            public static Texture2D Tooltip = mod.GetTexture("Items/TFItemTooltipUI");
-            public static Texture2D White = mod.GetTexture("Extras/UI2");
-            public static Texture2D Logo = mod.GetTexture("Extras/Logo");
+            public static Texture2D Beige;
+            public static Texture2D Tooltip;
+            public static Texture2D White;
+            public static Texture2D Logo;
+        }
+
+        /// <summary>
+        /// Numerous building statistics.
+        /// </summary>
+        public struct BuildingStats
+        {
+            public struct Types
+            {
+                public static int MiniSentry = 0;
+                public static int Sentry = 1;
+                public static int Dispenser = 2;
+                public static int Teleporter = 3;
+            }
+
+            public struct Levels
+            {
+                public static int MiniSentryOne = 0;
+                public static int One = 1;
+                public static int Two = 2;
+                public static int Three = 3;
+            }
+
+            public const float upgradeTime = 96f;
+
+            public static int[] maxHealth =
+            {
+                100,
+                150,
+                180,
+                216
+            };
+
+            public static int[] buildCost =
+            {
+                100,
+                130,
+                100,
+                50
+            };
+
+            public static float[] constructionTime =
+            {
+                252f,
+                630f,
+                1260f,
+                1260f
+            };
         }
 
         /// <summary>
@@ -186,37 +234,112 @@ namespace TerrariaFortress
     public class TerrariaFortress : Mod
     {
         public static TerrariaFortress mod => ModContent.GetInstance<TerrariaFortress>();
-        public static Texture2D oldLogo1;
-        public static Texture2D oldLogo2;
+        public Texture2D cachedLogo1;
+        public Texture2D cachedLogo2;
         public SoundEffect cachedTickSound;
         public SoundEffect cachedOpenedSound;
         public SoundEffect cachedClosedSound;
 
-        public override void Load()
+        public void TFUnload()
+        {
+            Main.logoTexture = cachedLogo1;
+            Main.logo2Texture = cachedLogo2;
+            Main.soundMenuTick = cachedTickSound;
+            Main.soundMenuOpen = cachedOpenedSound;
+            Main.soundMenuClose = cachedClosedSound;
+        }
+
+        public void TFLoad()
         {
             TFUtils.downloads = TFUtils.GetDownloadCount();
-            oldLogo1 = Main.logoTexture;
-            oldLogo2 = Main.logo2Texture;
+            cachedLogo1 = Main.logoTexture;
+            cachedLogo2 = Main.logo2Texture;
             cachedTickSound = Main.soundMenuTick;
             cachedOpenedSound = Main.soundMenuOpen;
             cachedClosedSound = Main.soundMenuClose;
 
-            On.Terraria.Main.DrawMenu += Main_DrawMenu;
+            TFUtils.UITextures.Beige = mod.GetTexture("Extras/UI1");
+            TFUtils.UITextures.Tooltip = mod.GetTexture("Items/TFItemTooltipUI");
+            TFUtils.UITextures.White = mod.GetTexture("Extras/UI2");
+            TFUtils.UITextures.Logo = mod.GetTexture("Extras/Logo");
 
-            Main.logoTexture = TFUtils.UITextures.Logo;
-            Main.logo2Texture = TFUtils.UITextures.Logo;
-            Main.soundMenuTick = GetSound("Sounds/Custom/UIHover1");
-            Main.soundMenuOpen = GetSound("Sounds/Custom/UIClickFull1");
-            Main.soundMenuClose = GetSound("Sounds/Custom/UIClickFull1");
+            if (ModContent.GetInstance<TFConfig>().showTitleExtras)
+            {
+                Main.logoTexture = TFUtils.UITextures.Logo;
+                Main.logo2Texture = TFUtils.UITextures.Logo;
+                Main.soundMenuTick = GetSound("Sounds/Custom/UIHover1");
+                Main.soundMenuOpen = GetSound("Sounds/Custom/UIClickFull1");
+                Main.soundMenuClose = GetSound("Sounds/Custom/UIClickFull1");
+            }
+        }
+
+        public override void PreSaveAndQuit()
+        {
+            TFLoad();
+        }
+
+        public override void Load()
+        {
+            TFLoad();
+            if (ModContent.GetInstance<TFConfig>().showTitleExtras)
+            {
+                On.Terraria.Main.DrawMenu += Main_DrawMenu;
+            }
+            On.Terraria.Main.DrawInterface_39_MouseOver += Main_DrawInterface_39_MouseOver;
+        }
+
+        private void TFDrawBuildingMouseText(Main self)
+        {
+            SpriteBatch spriteBatch = Main.spriteBatch;
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, self.Rasterizer, null, Main.GameViewMatrix.ZoomMatrix);
+            for (int i = 0; i < Main.maxPlayers; i++)
+            {
+                Player player = Main.player[i];
+                if (player == Main.player[Main.myPlayer])
+                {
+                    bool mouseOverProjectile = false;
+                    string text = "";
+                    for (int j = 0; j < Main.maxProjectiles; j++)
+                    {
+                        Projectile projectile = Main.projectile[i];
+
+                        player.GetModPlayer<TFModPlayer>().mouseBuilding = false;
+                        if (projectile.active && projectile.Hitbox.Contains(Main.MouseWorld.ToPoint()) && !player.GetModPlayer<TFModPlayer>().mouseBuilding)
+                        {
+                            if (projectile.Name != "" && projectile.Name != null)
+                            {
+                                text = projectile.Name + ": " + projectile.timeLeft + "/" + projectile.timeLeft;
+                            }
+                            mouseOverProjectile = true;
+                            player.GetModPlayer<TFModPlayer>().mouseBuilding = true;
+                        }
+                    }
+                    if (mouseOverProjectile)
+                    {
+                        Vector2 dimensions = Main.fontMouseText.MeasureString(text);
+                        Color color = new Color(Main.mouseTextColor, Main.mouseTextColor, Main.mouseTextColor, Main.mouseTextColor);
+                        Vector2 position = new Vector2(0f, 0f);
+                        if (Main.ThickMouse)
+                        {
+                            position += new Vector2(6f, 6f);
+                        }
+                        position += Main.MouseScreen;
+                        ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontMouseText, text, position, color, 0f, Vector2.Zero, Vector2.One);
+                    }
+                }
+            }
+            spriteBatch.End();
+        }
+
+        private void Main_DrawInterface_39_MouseOver(On.Terraria.Main.orig_DrawInterface_39_MouseOver orig, Main self)
+        {
+            TFDrawBuildingMouseText(self);
+            orig(self);
         }
 
         public override void Unload()
         {
-            Main.logoTexture = oldLogo1;
-            Main.logo2Texture = oldLogo2;
-            Main.soundMenuTick = cachedTickSound;
-            Main.soundMenuOpen = cachedOpenedSound;
-            Main.soundMenuClose = cachedClosedSound;
+            TFUnload();
         }
 
         internal static string changelogsString;
@@ -236,6 +359,8 @@ namespace TerrariaFortress
                     DynamicSpriteFont changelogsFont = Main.fontDeathText;
                     SpriteBatch spriteBatch = Main.spriteBatch;
                     Vector2 letsFuckingMeasure;
+                    string openString = "Open Terraria Fortress Changelog";
+                    string closeString = "Close Terraria Fortress Changelog";
                     changelogsString = "Currently at " + TFUtils.DownloadCountFormatted() + " downloads.\n";
 
                     if (changelogsBox.Contains(Main.MouseScreen.ToPoint()))
@@ -250,7 +375,7 @@ namespace TerrariaFortress
                     {
                         Main.logoTexture = TFUtils.UITextures.Logo;
                         Main.logo2Texture = TFUtils.UITextures.Logo;
-                        changelogsString += "Open Terraria Fortress Changelogs";
+                        changelogsString += openString;
                         changelogsStringMessage = "";
 
                     }
@@ -258,7 +383,7 @@ namespace TerrariaFortress
                     {
                         Main.logoTexture = GetTexture("Extras/FUCK");
                         Main.logo2Texture = GetTexture("Extras/FUCK");
-                        changelogsString += "Close Terraria Fortress Changelogs";
+                        changelogsString += closeString;
                         #region The Actual Fucking Log
                         changelogsStringMessage =
 "v0.5 - What Valve Couldn't Promise"
@@ -299,7 +424,7 @@ namespace TerrariaFortress
                         ChatManager.DrawColorCodedStringWithShadow(spriteBatch, changelogsFont, changelogsStringMessage, changelogsPosition, TFColor[(int)TFColorID.Strange], 0f, new Vector2(0f, 0f), changelogsScale);
                     }
 
-                    letsFuckingMeasure = changelogsFont.MeasureString(changelogsString);
+                    letsFuckingMeasure = changelogsFont.MeasureString(closeString);
                     Vector2 logsBoxDimensions = letsFuckingMeasure * changelogsScale;
                     changelogsBox = new Rectangle((int)changelogsPosition.X, 16, (int)logsBoxDimensions.X, (int)logsBoxDimensions.Y);
 
@@ -328,7 +453,6 @@ namespace TerrariaFortress
                     TFUtils.DrawBackground(TFUtils.UITextures.Tooltip, new Vector2((int)changelogsPosition.X, changelogsBox.Y), new Vector2((int)letsFuckingMeasure.X, (int)letsFuckingMeasure.Y - 4), new Vector2(18f, 6f), changelogsHovering ? Color.White : new Color(255, 110, 110));
                     ChatManager.DrawColorCodedStringWithShadow(spriteBatch, changelogsFont, changelogsString, new Vector2(changelogsPosition.X, changelogsBox.Y), hoverColor, 0f, Vector2.Zero, changelogsScale);
                 }
-
                 orig(self, gameTime);
             }
         }

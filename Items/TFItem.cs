@@ -1134,8 +1134,7 @@ namespace TerrariaFortress.Items
         public virtual void DrawSimpleHoldout(Texture2D texture, Vector2 offset, Vector2 originOffset, float rotation, Color suppliedColor, Player player, int horizontalFrames = 1, int verticalFrames = 1, int frameX = 0, int frameY = 0, int shader = 0)
         {
             Rectangle rectangle = texture.Frame(horizontalFrames, verticalFrames, frameX, frameY);
-            Vector2 drawPosition = (player.MountedCenter - Main.screenPosition + new Vector2(player.direction * offset.X, player.gfxOffY + player.gravDir * offset.Y));
-            drawPosition = new Vector2((int)drawPosition.X, (int)drawPosition.Y);
+            Vector2 drawPosition = (player.MountedCenter + new Vector2(player.direction * offset.X, player.gfxOffY + player.gravDir * offset.Y) - Main.screenPosition).Floor();
             Vector2 origin = rectangle.Size() * 0.5f + new Vector2(0f - offset.X * player.direction + originOffset.X * player.direction - offset.X * player.direction + (rectangle.Width * -player.direction * 0.5f), player.gravDir * (-offset.Y + originOffset.Y));
             DrawData drawData = new DrawData(texture, drawPosition, rectangle, suppliedColor, rotation, origin, player.HeldItem.scale, FlipEffect(player), 0);
             drawData.shader = shader;
@@ -1150,8 +1149,7 @@ namespace TerrariaFortress.Items
         {
             Rectangle rectangle = texture.Frame(horizontalFrames, verticalFrames, frameX, frameY);
             originOffset += new Vector2(0f, rectangle.Height * 0.5f);
-            offset = offset.RotatedBy(MathHelper.ToRadians(45f));
-            offset = new Vector2((int)offset.X, (int)offset.Y);
+            offset = (offset.RotatedBy(MathHelper.ToRadians(45f))).Floor();
             DrawSimpleHoldout(texture, offset, originOffset, rotation, suppliedColor, player, horizontalFrames, verticalFrames, frameX, frameY, shader);
         }
 

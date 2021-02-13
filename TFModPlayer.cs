@@ -46,16 +46,35 @@ namespace TerrariaFortress
         /// If the player is rocket jumping.
         /// </summary>
         public bool isRocketJumping = false;
-        public bool stockUber = false;
+        /// <summary>
+        /// If the player is ubercharged with the Medi Gun.
+        /// </summary>
+        public bool mediGunUber = false;
+        /// <summary>
+        /// If the player is ubercharged with the Vaccinator.
+        /// </summary>
         public bool vaccinatorUber = false;
+        /// <summary>
+        /// Different vaccinator resistance modes.
+        /// </summary>
         public enum VaccinatorModes
         {
             BulletResist,
             ExplosiveResist,
             FireResist
         }
+        /// <summary>
+        /// If the player is being ubercharged with the Quick-Fix.
+        /// </summary>
         public bool quickFixUber = false;
+        /// <summary>
+        /// If the player is being ubercharged with the Kritzkrieg.
+        /// </summary>
         public bool kritzkriegUber = false;
+        /// <summary>
+        /// If the player's cursor is over a building.
+        /// </summary>
+        public bool mouseBuilding = false;
 
         public virtual bool ItemCritCheck(Player player, TFItem TFItem)
         {
@@ -73,6 +92,17 @@ namespace TerrariaFortress
             }
 
             return false;
+        }
+
+        public override void OnEnterWorld(Player player)
+        {
+            if (player == Main.player[Main.myPlayer])
+            {
+                if (ModContent.GetInstance<TFConfig>().showTitleExtras)
+                {
+                    ModContent.GetInstance<TerrariaFortress>().TFUnload();
+                }
+            }
         }
 
         public override void PreUpdate()
@@ -379,6 +409,11 @@ namespace TerrariaFortress
 
         public static readonly PlayerLayer HeldItem = new PlayerLayer("TerrariaFortress", "HeldItem", PlayerLayer.HeldItem, delegate (PlayerDrawInfo drawInfo)
         {
+            if (drawInfo.shadow != 0f)
+            {
+                return;
+            }
+
             Player player = drawInfo.drawPlayer;
             bool drawConditions = !player.dead && player.active && !player.invis && !player.frozen && !player.stoned;
 

@@ -11,7 +11,6 @@ namespace TerrariaFortress.Items.Weapons.Details
     {
         public override void OnSpawn(Gore gore)
         {
-            Texture2D texture = Main.goreTexture[gore.type];
             gore.numFrames = 4;
             gore.timeLeft = 360;
         }

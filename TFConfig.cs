@@ -15,6 +15,11 @@ namespace TerrariaFortress
         [Label("Melee Weapon Holdout Rotation")]
         [Tooltip("If enabled, melee weapons' holdouts will rotate\nto your cursor and change your player's direction.")]
         public bool shouldMeleeHoldoutRotate;
+        [ReloadRequired]
+        [DefaultValue(true)]
+        [Label("UI Extras")]
+        [Tooltip("This option will force a reload upon change.\nToggles the TF Logo replacement for the tModLoader\nlogo, the change of UI sounds to TF2's,\nand the presence of the changelog on the top left.")]
+        public bool showTitleExtras;
 
         [Header("Gameplay")]
         [DefaultValue(true)]
