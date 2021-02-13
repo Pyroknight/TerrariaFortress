@@ -247,6 +247,22 @@ namespace TerrariaFortress
             Main.soundMenuTick = cachedTickSound;
             Main.soundMenuOpen = cachedOpenedSound;
             Main.soundMenuClose = cachedClosedSound;
+            lock (TFUtils.UITextures.Beige)
+            {
+                TFUtils.UITextures.Beige = null;
+            }
+            lock (TFUtils.UITextures.Logo)
+            {
+                TFUtils.UITextures.Logo = null;
+            }
+            lock (TFUtils.UITextures.Tooltip)
+            {
+                TFUtils.UITextures.Tooltip = null;
+            }
+            lock (TFUtils.UITextures.White)
+            {
+                TFUtils.UITextures.White = null;
+            }
         }
 
         public void TFLoad()
@@ -340,6 +356,7 @@ namespace TerrariaFortress
         public override void Unload()
         {
             TFUnload();
+            // Should work. Sadly It is written inefficiently.
         }
 
         internal static string changelogsString;
